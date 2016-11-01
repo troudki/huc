@@ -154,48 +154,60 @@ cont:
 				expr++;
 				break;
 
-			/* not equal, left shift, lower, lower or equal */
+			/* low byte, not equal, left shift, lower, lower or equal */
 			case '<':
-				if (!need_operator)
-					goto error;
-				expr++;
-				switch (*expr) {
+				switch (*(expr+1)) {
 				case '>':
+					if (!need_operator)
+						goto error;
 					op = OP_NOT_EQUAL;
-					expr++;
+					expr += 2;
 					break;
 				case '<':
+					if (!need_operator)
+						goto error;
 					op = OP_SHL;
-					expr++;
+					expr += 2;
 					break;
 				case '=':
+					if (!need_operator)
+						goto error;
 					op = OP_LOWER_EQUAL;
-					expr++;
+					expr += 2;
 					break;
 				default:
-					op = OP_LOWER;
+					if (!need_operator)
+						op = OP_LOW;
+					else
+						op = OP_LOWER;
+					expr++;
 					break;
 				}
 				if (!push_op(op))
 					return (0);
 				break;
 
-			/* right shift, higher, higher or equal */
+			/* high byte, right shift, higher, higher or equal */
 			case '>':
-				if (!need_operator)
-					goto error;
-				expr++;
-				switch (*expr) {
+				switch (*(expr+1)) {
 				case '>':
+					if (!need_operator)
+						goto error;
 					op = OP_SHR;
-					expr++;
+					expr += 2;
 					break;
 				case '=':
+					if (!need_operator)
+						goto error;
 					op = OP_HIGHER_EQUAL;
-					expr++;
+					expr += 2;
 					break;
 				default:
-					op = OP_HIGHER;
+					if (!need_operator)
+						op = OP_HIGH;
+					else
+						op = OP_HIGHER;
+					expr++;
 					break;
 				}
 				if (!push_op(op))
@@ -226,6 +238,17 @@ cont:
 					op = OP_SUB;
 				else
 					op = OP_NEG;
+				if (!push_op(op))
+					return (0);
+				expr++;
+				break;
+
+			/* bank byte, xor */
+			case '^':
+				if (need_operator)
+					op = OP_XOR;
+				else
+					op = OP_BANK;
 				if (!push_op(op))
 					return (0);
 				expr++;
@@ -263,7 +286,6 @@ cont:
 			case '+':
 			case '/':
 			case '&':
-			case '^':
 			case '|':
 				if (!need_operator)
 					goto error;
@@ -273,7 +295,6 @@ cont:
 				case '+': op = OP_ADD; break;
 				case '/': op = OP_DIV; break;
 				case '&': op = OP_AND; break;
-				case '^': op = OP_XOR; break;
 				case '|': op = OP_OR;  break;
 				}
 				if (!push_op(op))
