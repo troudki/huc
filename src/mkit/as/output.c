@@ -41,7 +41,7 @@ println(void)
 		/* check level */
 		if ((data_level > list_level) && (nb > 3)) {
 			/* doesn't match */
-			fputs(prlnbuf, lst_fp); putc_unlocked('\n', lst_fp);
+			fputs(prlnbuf, lst_fp); putc('\n', lst_fp);
 		}
 		else {
 			/* ok */
@@ -60,13 +60,13 @@ println(void)
 				cnt++;
 				if (cnt == data_size) {
 					cnt = 0;
-					fputs(prlnbuf, lst_fp); putc_unlocked('\n', lst_fp);
+					fputs(prlnbuf, lst_fp); putc('\n', lst_fp);
 					clearln();
 					loadlc(data_loccnt, 0);
 				}
 			}
 			if (cnt) {
-				fputs(prlnbuf, lst_fp); putc_unlocked('\n', lst_fp);
+				fputs(prlnbuf, lst_fp); putc('\n', lst_fp);
 			}
 		}
 	}

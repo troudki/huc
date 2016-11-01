@@ -173,7 +173,7 @@ start:
 
 	/* get a line */
 	i = SFIELD;
-	c = getc_unlocked(in_fp);
+	c = getc(in_fp);
 	if (c == EOF) {
 		if (close_input())
 			return (-1);
@@ -182,7 +182,7 @@ start:
 	for (;;) {
 		/* check for the end of line */
 		if (c == '\r') {
-			c = getc_unlocked(in_fp);
+			c = getc(in_fp);
 			if (c == '\n' || c == EOF)
 				break;
 			ungetc(c, in_fp);
@@ -196,7 +196,7 @@ start:
 		i += (i < LAST_CH_POS) ? 1 : 0;
 
 		/* get next char */
-		c = getc_unlocked(in_fp);
+		c = getc(in_fp);
 	}
 	prlnbuf[i] = '\0';
 	return (0);

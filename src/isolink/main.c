@@ -59,7 +59,7 @@ init_path(void)
    if (p == NULL) {
       p =
 #ifdef WIN32
-         "c:\\huc\\include\\pce",
+         "c:\\huc\\include\\pce"
 #else
          "/usr/local/lib/huc/include/pce;" \
          "/usr/local/huc/include/pce;" \
