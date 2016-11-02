@@ -622,10 +622,140 @@ static int have_init_data = 0;
    separate buffers and dump them all together after the last input file.
  */
 #define DATABUFSIZE 65536
-static FILE *data = 0;
-char data_buf[DATABUFSIZE];
-static FILE *rodata = 0;
-char rodata_buf[DATABUFSIZE];
+char data_buffer[DATABUFSIZE+256];
+int  data_offset = 0;
+char rodata_buffer[DATABUFSIZE+256];
+int  rodata_offset = 0;
+
+char *current_buffer = NULL;
+int   current_offset = 0;
+
+/*
+ *	buffered print symbol prefix character
+ *
+ */
+void prefixBuffer(void)
+{
+	current_buffer[current_offset++] = '_';
+}
+
+/*
+ *	buffered print string
+ *
+ */
+void outstrBuffer (char *ptr)
+{
+	int i = 0;
+
+	if (current_offset >=	DATABUFSIZE) {
+		printf("HuC compiler overrun detected, DATABUFSIZE is too small!\n");
+		exit(-1);
+	}
+
+	while (ptr[i])
+		current_buffer[current_offset++] = ptr[i++];
+}
+
+/*
+ *	buffered print character
+ *
+ */
+char outbyteBuffer (char c)
+{
+	if (c == 0)
+		return (0);
+
+	current_buffer[current_offset++] = c;
+
+	return (c);
+}
+
+/*
+ *	buffered print decimal number
+ *
+ */
+void outdecBuffer (long number)
+{
+	if (current_offset >=	DATABUFSIZE) {
+		printf("HuC compiler overrun detected, DATABUFSIZE is too small!\n");
+		exit(-1);
+	}
+
+	current_offset += sprintf(current_buffer + current_offset, "%ld", number);
+}
+
+/*
+ *	buffered print pseudo-op to define a byte
+ *
+ */
+void nlBuffer (void)
+{
+	current_buffer[current_offset++] = EOL;
+}
+
+/*
+ *	buffered print pseudo-op to define a byte
+ *
+ */
+void defbyteBuffer (void)
+{
+	outstrBuffer(".db\t");
+}
+
+/*
+ *	buffered print pseudo-op to define storage
+ *
+ */
+void defstorageBuffer (void)
+{
+	outstrBuffer(".ds\t");
+}
+
+/*
+ *	buffered print pseudo-op to define a word
+ *
+ */
+void defwordBuffer (void)
+{
+	outstrBuffer(".dw\t");
+}
+
+/**
+ * buffered dump struct data
+ * @param symbol struct variable
+ * @param position position of the struct in the array, or zero
+ */
+int dump_structBuffer (SYMBOL *symbol, int position)
+{
+	int dumped_bytes = 0;
+	int i, number_of_members, value;
+
+	number_of_members = tag_table[symbol->tagidx].number_of_members;
+	for (i = 0; i < number_of_members; i++) {
+		// i is the index of current member, get type
+		int member_type = member_table[tag_table[symbol->tagidx].member_idx + i].type;
+		if (member_type == CCHAR || member_type == CUCHAR) {
+			defbyteBuffer();
+			dumped_bytes += 1;
+		}
+		else {
+			/* XXX: compound types? */
+			defwordBuffer();
+			dumped_bytes += 2;
+		}
+		if (position < get_size(symbol->name)) {
+			// dump data
+			value = get_item_at(symbol->name, position * number_of_members + i, &tag_table[symbol->tagidx]);
+			outdecBuffer(value);
+		}
+		else {
+			// dump zero, no more data available
+			outdecBuffer(0);
+		}
+		nlBuffer();
+	}
+	return (dumped_bytes);
+}
 
 /*
  *	dump all static variables
@@ -636,11 +766,6 @@ void dumpglbs (void)
 	int dim, list_size, line_count;
 	int j;
 	FILE *save = output;
-
-	if (!data)
-		data = fmemopen(data_buf, DATABUFSIZE, "w");
-	if (!rodata)
-		rodata = fmemopen(rodata_buf, DATABUFSIZE, "w");
 
 	/* This is done in several passes:
 	   Pass 0: Dump initialization data into const bank.
@@ -664,20 +789,24 @@ next:
 							continue;
 						else if (pass == 2) {
 							/* define space for initialized data */
-							output = data;
+							current_buffer = data_buffer;
+							current_offset = data_offset;
 							if (cptr->storage != LSTATIC)
-								prefix();
-							outstr(cptr->name);
-							outstr(":\t");
-							defstorage();
-							outdec(cptr->size);
-							nl();
+								prefixBuffer();
+							outstrBuffer(cptr->name);
+							outstrBuffer(":\t");
+							defstorageBuffer();
+							outdecBuffer(cptr->size);
+							nlBuffer();
 							cptr->storage |= WRITTEN;
-							output = save;
+							data_offset = current_offset;
+							current_buffer = NULL;
+							current_offset = 0;
 							continue;
 						}
 						/* output initialization data into const bank */
-						output = rodata;
+						current_buffer = rodata_buffer;
+						current_offset = rodata_offset;
 						have_init_data = 1;
 						list_size = 0;
 						line_count = 0;
@@ -692,35 +821,37 @@ next:
 						   we have to count both to get the right members out. */
 						for (j = item = 0; j < dim; j++, item++) {
 							if (cptr->type == CSTRUCT)
-								j += dump_struct(cptr, item) - 1;
+								j += dump_structBuffer(cptr, item) - 1;
 							else {
 								if (line_count % 10 == 0) {
-									nl();
+									nlBuffer();
 									if (cptr->type == CCHAR || cptr->type == CUCHAR)
-										defbyte();
+										defbyteBuffer();
 									else
-										defword();
+										defwordBuffer();
 								}
 								if (j < list_size) {
 									// dump data
 									int value = get_item_at(cptr->name, j, &tag_table[cptr->tagidx]);
-									outdec(value);
+									outdecBuffer(value);
 								}
 								else {
 									// dump zero, no more data available
-									outdec(0);
+									outdecBuffer(0);
 								}
 								line_count++;
 								if (line_count % 10 == 0)
 									line_count = 0;
 								else {
 									if (j < dim - 1)
-										outbyte(',');
+										outbyteBuffer(',');
 								}
 							}
 						}
-						nl();
-						output = save;
+						nlBuffer();
+						rodata_offset = current_offset;
+						current_buffer = NULL;
+						current_offset = 0;
 					}
 					else {
 						if (pass == 0)
@@ -770,23 +901,23 @@ static void dumpfinal (void)
 			outstr("_lend:\n");
 		}
 	}
-	if (data) {
-		fclose(data);
+	if (data_offset != 0) {
+		data_buffer[data_offset] = '\0';
 		outstr("huc_data:\n");
 		outstr("___huc_data:\n");
-		outstr(data_buf);
+		outstr(data_buffer);
 		outstr("huc_data_end:\n");
 		outstr("___huc_data_end:\n");
 	}
 	if (globals_h_in_process != 1)
 		outstr("__heap_start:\n");
-	if (rodata) {
-		fclose(rodata);
+	if (rodata_offset != 0) {
+		rodata_buffer[rodata_offset] = '\0';
 		ol(".data");
 		ol(".bank CONST_BANK");
 		outstr("huc_rodata:\n");
 		outstr("___huc_rodata:\n");
-		outstr(rodata_buf);
+		outstr(rodata_buffer);
 		outstr("huc_rodata_end:\n");
 		outstr("___huc_rodata_end:\n");
 	}
@@ -905,7 +1036,7 @@ long assemble (char *s)
 //	}
 // .....
 #if defined(WIN32)
-	return (execvp(exe, (const char *const *)opts));
+	return (execvp(exe, (char *const *)opts));
 
 #else
 	return (execvp(exe, (char *const *)opts));
