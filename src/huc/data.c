@@ -104,6 +104,7 @@ struct enum_type *enum_types;
 int enum_type_ptr = 0;
 
 int user_short_enums = 1;
+int user_signed_char = 0;
 
 long output_globdef;
 int have_irq_handler;

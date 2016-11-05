@@ -99,7 +99,7 @@ void dopsdinc (void)
 		prefix();
 		outstr(litq2);
 		outstr(":\n");
-		addglb_far(litq2, CCHAR);
+		addglb_far(litq2, CUCHAR);
 
 		if (!match(",")) {
 			error("missing ,");

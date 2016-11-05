@@ -102,6 +102,7 @@ extern struct enum_type *enum_types;
 extern int enum_type_ptr;
 
 extern int user_short_enums;
+extern int user_signed_char;
 
 extern long output_globdef;
 extern int have_irq_handler;

@@ -203,6 +203,14 @@ int main (int argc, char *argv[])
 						user_short_enums = 1;
 						p += 10;
 					}
+					else if (!strcmp(p, "signed-char")) {
+						user_signed_char = 1;
+						p += 10;
+					}
+					else if (!strcmp(p, "unsigned-char")) {
+						user_signed_char = 0;
+						p += 12;
+					}
 					else
 						goto unknown_option;
 					break;

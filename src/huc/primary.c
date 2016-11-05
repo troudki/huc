@@ -107,8 +107,11 @@ int match_type (struct type *t, int do_ptr, int allow_unk_compound)
 		else if (amatch("signed", 6))
 			have_sign = 1;
 
-		if (amatch("char", 4))
+		if (amatch("char", 4)) {
 			t->type |= CCHAR;
+			if ((have_sign == 0) && (user_signed_char == 0))
+				t->type |= CUNSIGNED;
+		}
 		else if (amatch("int", 3))
 			t->type |= CINT;
 		else if (amatch("short", 5)) {
