@@ -242,13 +242,13 @@ _peekw:
 ; ----
 
 _farpeekb.1:
-	lda	<fbank
+	lda	<__fbank
 	tam	#3
-	lda	<fptr+1
+	lda	<__fptr+1
 	and	#$1F
 	ora	#$60
-	sta	<fptr+1
-	lda	[fptr]
+	sta	<__fptr+1
+	lda	[__fptr]
 	tax
 	cla
 	rts
@@ -257,30 +257,30 @@ _farpeekb.1:
 ; ----
 
 _farpeekw.1:
-	lda	<fbank
+	lda	<__fbank
 	tam	#3
-	lda	<fptr+1
+	lda	<__fptr+1
 	and	#$1F
 	ora	#$60
-	sta	<fptr+1
+	sta	<__fptr+1
 	bra	_farpeekw.sub
 _farpeekw.fast:
 	tam	#3
 	txa
 	and	#$1F
 	ora	#$60
-	sta	<fptr+1
+	sta	<__fptr+1
 _farpeekw.sub:
-	lda	[fptr]
+	lda	[__fptr]
 	tax
-	inc	<fptr
+	inc	<__fptr
 	bcc	.l1
-	inc	<fptr+1
+	inc	<__fptr+1
 	bpl	.l1
 	lda	#$60
-	sta	<fptr+1
+	sta	<__fptr+1
 .l1:
-	lda	[fptr]
+	lda	[__fptr]
 	rts
 
 ; farmemget(void *dst, far void *base, int len)
@@ -301,7 +301,7 @@ _farmemget.3:
 lib2_farmemget.3:
 
 	__stw	<cx
-	lda	<fbank
+	lda	<__fbank
 	tam	#3
 
 	; ----
@@ -312,10 +312,10 @@ lib2_farmemget.3:
 	blo	.t1
 	stw	#$2000,<cx
 	; -- check length
-.t1:	lda	<fptr
+.t1:	lda	<__fptr
 	add	<cl
 	sta	<al
-	lda	<fptr+1
+	lda	<__fptr+1
 	and	#$1F
 	adc	<ch
 	sta	<ah
@@ -328,10 +328,10 @@ lib2_farmemget.3:
 	sta	<dl
 	subw	<dx,<cx
 	; -- remap src ptr
-.t2:	lda	<fptr+1
+.t2:	lda	<__fptr+1
 	and	#$1F
 	ora	#$60
-	sta	<fptr+1
+	sta	<__fptr+1
 
 	; ----
 	; copy a block
@@ -341,7 +341,7 @@ lib2_farmemget.3:
 	dec	<ch
 	bmi	.l4
 	; -- main loop
-.l1:	lda	[fptr],Y
+.l1:	lda	[__fptr],Y
 	sta	[bx],Y
 	iny
 	dex
@@ -355,7 +355,7 @@ lib2_farmemget.3:
 	bcc	.l3
 .l2:	inc	<bh
 	; -- inc src ptr
-.l3:	inc	<fptr+1
+.l3:	inc	<__fptr+1
 	; -- next chunk
 	dec	<ch
 	bpl	.l1
@@ -370,7 +370,7 @@ lib2_farmemget.3:
 	beq	.l5
 	; -- reload dst and cnt
 	stw	<dx,<cx
-	stw	#$6000,<fptr
+	stw	#$6000,<__fptr
 	; -- inc bank
 	tma	#3
 	inc	A
