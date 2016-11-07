@@ -915,27 +915,56 @@ void arg_to_fptr (struct fastcall *fast, long i, long arg, long adj)
 	err = 0;
 
 	/* check arg */
-	if (nb == 0)
-		err = 1;
-	else if (ins->type != T_SYMBOL)
-		err = 1;
-	else {
-		if ((ins->code != I_LDWI) && (ins->code != I_LDW))
-			err = 1;
-		else {
+	/* this code can be fooled, but it should catch most common errors */
+	err = 1;
+	if (nb == 1) {
+		if (ins->type == T_SYMBOL) {
+			/* allow either "function", "array", or "array+const" */
 			sym = (SYMBOL *)ins->data;
-
-			/* check symbol type */
-			if (ins->code == I_LDW) {
-				if ((nb < 2) || (sym->ident == VARIABLE))
-					err = 1;
-			}
-			else {
-				if ((sym->ident == POINTER) || (sym->ident == VARIABLE))
-					err = 1;
+			switch (sym->ident) {
+				case FUNCTION:
+				case ARRAY:
+				case 0:
+					if (ins->code == I_LDWI)
+						err = 0;
+					break;
+				case POINTER:
+					if (ins->code == I_LDW)
+						err = 0;
+					break;
 			}
 		}
 	}
+	else if (nb > 1) {
+		/* complex expression */
+		for (idx = 0; idx < nb; ++idx, ++ins) {
+			if (ins->type == T_SYMBOL) {
+				/* allow either "function", "array", or "array+const" */
+				sym = (SYMBOL *)ins->data;
+				switch (sym->ident) {
+					case ARRAY:
+						if ((ins->code == I_LDWI) ||
+								(ins->code == I_ADDWI))
+							err = 0;
+						break;
+					case POINTER:
+						if (ins->code == I_LDW)
+							err = 0;
+						break;
+				}
+			}
+			if (err == 0) break;
+		}
+
+		/* check if last instruction is a pointer dereference */
+		switch (ins_stack[ arg_list[arg][0] + nb - 1 ].code) {
+			case I_LDBP:
+			case I_LDWP:
+				err = 1;
+				break;
+		}
+	}
+
 	if (err) {
 		error("can't get farptr");
 		return;
