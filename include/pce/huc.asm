@@ -1099,40 +1099,38 @@ ___case:
 
 	__addmi	2,__stack
 
+	cly
+	bra	.begin_case
+
+.next_case_lo:
+	iny
+.next_case_hi:
+	iny
 .begin_case:
-	addw	#2,<__ptr
-	__ldwp	__ptr
-	__tstw
-	__lbeq	.end_case_default
-
-	addw	#-2,<__ptr
-	__ldwp	__ptr
-
-	__addmi	-2,__stack
-	__stwp	__stack
-
-	addw	#4,<__ptr
-
-	__ldw	<remain
-
-	jsr	eq
-	__tstw
-	__lbeq	.begin_case
-
-	addw	#-2,<__ptr
-	__ldwp	__ptr
-	__stw	<__temp
-
+	iny			; skip func lo-byte
+	lda	[__ptr],y	; test func hi-byte
+	beq	.case_default
+	iny
+	lda	[__ptr],y
+	cmp	<remain+0
+	bne	.next_case_lo
+	iny
+	lda	[__ptr],y
+	cmp	<remain+1
+	bne	.next_case_hi
+	dey			; found match
+	dey
+.case_vector:
+	lda	[__ptr],y	; read func hi-byte 
+	sta	<__temp+1
+	dey
+	lda	[__ptr],y	; read func lo-byte
+	sta	<__temp+0
 	jmp	[__temp]
-
-.end_case_default:	; if we haven't found any corresponding value
-			; then we jump to the default supplied label
-
-	addw	#-2,<__ptr
-	__ldwp	__ptr
-	__stw	<__temp
-
-	jmp	[__temp]
+.case_default:
+	iny
+	iny
+	bra	.case_vector
 
 
 ; ----

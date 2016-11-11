@@ -556,9 +556,9 @@ void dumpsw (long *ws)
 			defword();
 			i = 4;
 			while (i--) {
-				outdec(swstcase[j]);
+				outlabel(swstlab[j]);
 				outbyte(',');
-				outlabel(swstlab[j++]);
+				outdec(swstcase[j++]);
 				if ((i == 0) | (j >= swstp)) {
 					nl();
 					break;
@@ -568,8 +568,8 @@ void dumpsw (long *ws)
 		}
 	}
 	defword();
+	outstr("0,");
 	outlabel(ws[WSDEF]);
-	outstr(",0");
 	nl();
 //	gtext ();
 }
