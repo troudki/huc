@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <time.h>
+#include <string.h>
 
 #include "defs.h"
 #include "data.h"
@@ -117,27 +118,33 @@ void out_ins (long code, long type, long data)
 {
 	INS tmp;
 
+	memset(&tmp, 0, sizeof(INS));
+
 	tmp.code = code;
 	tmp.type = type;
 	tmp.data = data;
 	gen_ins(&tmp);
 }
 
-void out_ins_ex (long code, long type, long data, int imm_type, long imm)
+void out_ins_ex (long code, long type, long data, long imm_type, long imm_data)
 {
 	INS tmp;
+
+	memset(&tmp, 0, sizeof(INS));
 
 	tmp.code = code;
 	tmp.type = type;
 	tmp.data = data;
-	tmp.imm = imm;
 	tmp.imm_type = imm_type;
+	tmp.imm_data = imm_data;
 	gen_ins(&tmp);
 }
 
 void out_ins_sym (long code, long type, long data, SYMBOL *sym)
 {
 	INS tmp;
+
+	memset(&tmp, 0, sizeof(INS));
 
 	tmp.code = code;
 	tmp.type = type;
@@ -238,12 +245,14 @@ void gen_code (INS *tmp)
 	long code;
 	long type;
 	long data;
-	long imm;
+	long imm_type;
+	long imm_data;
 
 	code = tmp->code;
 	type = tmp->type;
 	data = tmp->data;
-	imm = tmp->imm;
+	imm_type = tmp->imm_type;
+	imm_data = tmp->imm_data;
 
 	if (type == T_NOP)
 		return;
@@ -368,7 +377,6 @@ void gen_code (INS *tmp)
 
 	case I_LDWI:
 		ot("__ldwi\t");
-
 		out_type(type, data);
 		nl();
 		break;
@@ -410,7 +418,8 @@ void gen_code (INS *tmp)
 		else
 			ot("__stbi\t");
 		out_type(type, data);
-		outstr(", "); out_type(tmp->imm_type, imm);
+		outstr(", ");
+		out_type(imm_type, imm_data);
 		nl();
 		break;
 
@@ -624,9 +633,9 @@ void gen_code (INS *tmp)
 		case T_SYMBOL:
 			ot("  call\t");
 			outsymbol((char *)data);
-			if (imm) {
+			if (imm_data) {
 				outstr(".");
-				outdec(imm);
+				outdec(imm_data);
 			}
 			break;
 		case T_LIB:
@@ -640,9 +649,9 @@ void gen_code (INS *tmp)
 	case I_MAPCBANK:
 		ot("__map_callbank\t");
 		outsymbol((char *)data);
-		if (imm) {
+		if (imm_data) {
 			outstr(".");
-			outdec(imm);
+			outdec(imm_data);
 		}
 		nl();
 		break;
@@ -650,9 +659,9 @@ void gen_code (INS *tmp)
 	case I_UNMAPCBANK:
 		ot("__unmap_callbank\t");
 		outsymbol((char *)data);
-		if (imm) {
+		if (imm_data) {
 			outstr(".");
-			outdec(imm);
+			outdec(imm_data);
 		}
 		nl();
 		break;
@@ -800,7 +809,7 @@ void gen_code (INS *tmp)
 	case I_DEF:
 		outstr((char *)data);
 		outstr(" .equ ");
-		outdec(imm);
+		outdec(imm_data);
 		nl();
 		break;
 

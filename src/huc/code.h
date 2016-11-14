@@ -19,7 +19,7 @@ void defbyte (void);
 void defstorage (void);
 void defword (void);
 void out_ins (long code, long type, long data);
-void out_ins_ex (long code, long type, long data, int imm_type, long imm);
+void out_ins_ex (long code, long type, long data, long imm_type, long imm_data);
 void out_ins_sym (long code, long type, long data, SYMBOL *sym);
 void gen_ins (INS *tmp);
 void gen_code (INS *tmp);

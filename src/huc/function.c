@@ -924,7 +924,6 @@ void arg_to_fptr (struct fastcall *fast, long i, long arg, long adj)
 			switch (sym->ident) {
 				case FUNCTION:
 				case ARRAY:
-				case 0:
 					if (ins->code == I_LDWI)
 						err = 0;
 					break;
@@ -944,7 +943,7 @@ void arg_to_fptr (struct fastcall *fast, long i, long arg, long adj)
 				switch (sym->ident) {
 					case ARRAY:
 						if ((ins->code == I_LDWI) ||
-								(ins->code == I_ADDWI))
+							(ins->code == I_ADDWI))
 							err = 0;
 						break;
 					case POINTER:

@@ -336,9 +336,9 @@ typedef struct {
 	long code;
 	long type;
 	long data;
-	long imm;
+	long imm_type;
+	long imm_data;
 	long arg[3];
-	int imm_type;
 	SYMBOL *sym;
 } INS;
 

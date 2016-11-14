@@ -403,8 +403,8 @@ lv1_loop:
 				 (p[3]->code == I_LDWI)) {
 				/* replace code */
 				p[3]->code = p[0]->code == I_STWPS ? I_STWI : I_STBI;
-				p[3]->imm = p[1]->data;
 				p[3]->imm_type = p[1]->type;
+				p[3]->imm_data = p[1]->data;
 				nb = 3;
 			}
 
@@ -671,7 +671,8 @@ lv1_loop:
 			 (p[1]->type == T_VALUE)) {
 				/* replace code */
 				p[2]->code = X_STBI_S;
-				p[2]->imm = p[1]->data;
+				p[2]->imm_type = p[1]->type;
+				p[2]->imm_data = p[1]->data;
 				nb = 2;
 			}
 
@@ -692,7 +693,8 @@ lv1_loop:
 			 (p[1]->type == T_VALUE)) {
 				/* replace code */
 				p[2]->code = X_STWI_S;
-				p[2]->imm = p[1]->data;
+				p[2]->imm_type = p[1]->type;
+				p[2]->imm_data = p[1]->data;
 				nb = 2;
 			}
 
@@ -1448,14 +1450,16 @@ lv1_loop:
 			else if (p[0]->code == I_STWIP &&
 				 p[1]->code == I_LDWI) {
 				p[1]->code = I_STWI;
-				p[1]->imm = p[0]->data;
+				p[1]->imm_type = p[0]->type;
+				p[1]->imm_data = p[0]->data;
 				nb = 1;
 			}
 			/* ldwi i; stbip j	--> stbi i, j */
 			else if (p[0]->code == I_STBIP &&
 				 p[1]->code == I_LDWI) {
 				p[1]->code = I_STBI;
-				p[1]->imm = p[0]->data;
+				p[1]->imm_type = p[0]->type;
+				p[1]->imm_data = p[0]->data;
 				nb = 1;
 			}
 
@@ -1465,10 +1469,10 @@ lv1_loop:
 				 p[0]->type == T_VALUE &&
 				 p[1]->code == I_LDWI) {
 				p[1]->code = (p[0]->code == I_STW) ? I_STWI : I_STBI;
-				p[1]->imm = p[1]->data;
 				p[1]->imm_type = p[1]->type;
-				p[1]->data = p[0]->data;
+				p[1]->imm_data = p[1]->data;
 				p[1]->type = p[0]->type;
+				p[1]->data = p[0]->data;
 				nb = 1;
 			}
 
@@ -1566,14 +1570,14 @@ lv1_loop:
 
 			else if (p[1]->code == I_STWI &&
 				 p[1]->imm_type == T_VALUE &&
-				 p[1]->imm == 0 &&
+				 p[1]->imm_data == 0 &&
 				 is_load(p[0]) &&
 				 p[0]->code != X_LDB_P &&
 				 p[0]->code != X_LDUB_P)
 				p[1]->code = I_STWZ;
 			else if (p[1]->code == I_STBI &&
 				 p[1]->imm_type == T_VALUE &&
-				 p[1]->imm == 0 &&
+				 p[1]->imm_data == 0 &&
 				 is_load(p[0]) &&
 				 p[0]->code != X_LDB_P &&
 				 p[0]->code != X_LDUB_P)
@@ -1954,7 +1958,7 @@ void gen_asm (INS *inst)
 
 	case X_STBI_S:
 		ot("__stbi_s\t");
-		outdec(inst->imm);
+		outdec(inst->imm_data);
 		outstr(",");
 		outdec(inst->data);
 		nl();
@@ -1962,7 +1966,7 @@ void gen_asm (INS *inst)
 
 	case X_STWI_S:
 		ot("__stwi_s\t");
-		outdec(inst->imm);
+		outdec(inst->imm_data);
 		outstr(",");
 		outdec(inst->data);
 		nl();
