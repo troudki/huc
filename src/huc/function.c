@@ -681,27 +681,27 @@ void callfunction (char *ptr)
 			/* fastcall */
 			for (i = 0, j = 0, adj = 0; i < cnt; i++) {
 				/* flush arg stack (except for farptr and dword args) */
-				if ((fast->argtype[j] != 0x03) &&
-				    (fast->argtype[j] != 0x04))
+				if ((fast->argtype[j] != TYPE_FARPTR) &&
+				    (fast->argtype[j] != TYPE_DWORD))
 					arg_flush(arg_idx + i, adj);
 
 				/* Either store the argument in its designated
 				   location, or save it on the (native) stack
 				   if there is another fastcall ahead. */
 				switch (fast->argtype[j]) {
-				case 0x01:	/* byte */
+				case TYPE_BYTE:
 					if (i < max_fc_arg)
 						SPILLB(fast->argname[j])
 						else
 							out_ins(I_STB, T_LITERAL, (long)fast->argname[j]);
 					break;
-				case 0x02:	/* word */
+				case TYPE_WORD:
 					if (i < max_fc_arg)
 						SPILLW(fast->argname[j])
 						else
 							out_ins(I_STW, T_LITERAL, (long)fast->argname[j]);
 					break;
-				case 0x03:	/* farptr */
+				case TYPE_FARPTR:
 					arg_to_fptr(fast, j, arg_idx + i, adj);
 					if (i < max_fc_arg) {
 						out_ins(I_LDUB, T_LITERAL, (long)fast->argname[j]);
@@ -711,7 +711,7 @@ void callfunction (char *ptr)
 					}
 					j += 1;
 					break;
-				case 0x04:	/* dword */
+				case TYPE_DWORD:
 					arg_to_dword(fast, j, arg_idx + i, adj);
 					if (i < max_fc_arg) {
 						out_ins(I_LDW, T_LITERAL, (long)fast->argname[j]);
@@ -723,7 +723,7 @@ void callfunction (char *ptr)
 					}
 					j += 2;
 					break;
-				case 0x00:	/* acc */
+				case TYPE_ACC:
 					if (i < max_fc_arg)
 						SPILLW(0)
 						uses_acc = 1;
