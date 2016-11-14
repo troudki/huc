@@ -270,9 +270,9 @@ void gen_code (INS *tmp)
 			break;
 		}
 		outstr(",");
-		outstr((char *)tmp->arg[0]);
+		outstr(tmp->arg[0]);
 		outstr(",");
-		outstr((char *)tmp->arg[1]);
+		outstr(tmp->arg[1]);
 		nl();
 		break;
 
@@ -280,17 +280,17 @@ void gen_code (INS *tmp)
 		ot("__farptr_i\t");
 		outsymbol((char *)data);
 		outstr(",");
-		outstr((char *)tmp->arg[0]);
+		outstr(tmp->arg[0]);
 		outstr(",");
-		outstr((char *)tmp->arg[1]);
+		outstr(tmp->arg[1]);
 		nl();
 		break;
 
 	case I_FARPTR_GET:
 		ot("__farptr_get\t");
-		outstr((char *)tmp->arg[0]);
+		outstr(tmp->arg[0]);
 		outstr(",");
-		outstr((char *)tmp->arg[1]);
+		outstr(tmp->arg[1]);
 		nl();
 		break;
 

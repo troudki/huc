@@ -972,8 +972,8 @@ void arg_to_fptr (struct fastcall *fast, long i, long arg, long adj)
 	/* ok */
 	if (nb == 1) {
 		ins->code = I_FARPTR;
-		ins->arg[0] = (long)fast->argname[i];
-		ins->arg[1] = (long)fast->argname[i + 1];
+		ins->arg[0] = fast->argname[i];
+		ins->arg[1] = fast->argname[i + 1];
 		gen_ins(ins);
 	}
 	else {
@@ -984,8 +984,8 @@ void arg_to_fptr (struct fastcall *fast, long i, long arg, long adj)
 			tmp.code = I_FARPTR_I;
 			tmp.type = T_SYMBOL;
 			tmp.data = ins->data;
-			tmp.arg[0] = (long)fast->argname[i];
-			tmp.arg[1] = (long)fast->argname[i + 1];
+			tmp.arg[0] = fast->argname[i];
+			tmp.arg[1] = fast->argname[i + 1];
 			ins->type = T_VALUE;
 			ins->data = 0;
 		}
@@ -996,8 +996,8 @@ void arg_to_fptr (struct fastcall *fast, long i, long arg, long adj)
 				tmp.code = I_FARPTR_GET;
 				tmp.type = (long)NULL;
 				tmp.data = (long)NULL;
-				tmp.arg[0] = (long)fast->argname[i];
-				tmp.arg[1] = (long)fast->argname[i + 1];
+				tmp.arg[0] = fast->argname[i];
+				tmp.arg[1] = fast->argname[i + 1];
 			}
 			else {
 				error("can't get farptr");
@@ -1032,8 +1032,8 @@ void arg_to_dword (struct fastcall *fast, long i, long arg, long adj)
 		/* immediate value */
 		if ((ins->code == I_LDWI) && (ins->type == T_VALUE)) {
 			ins->code = X_LDD_I;
-			ins->arg[0] = (long)fast->argname[i + 1];
-			ins->arg[1] = (long)fast->argname[i + 2];
+			ins->arg[0] = fast->argname[i + 1];
+			ins->arg[1] = fast->argname[i + 2];
 			gen = 1;
 		}
 
@@ -1060,8 +1060,8 @@ void arg_to_dword (struct fastcall *fast, long i, long arg, long adj)
 
 				ins->type = T_SYMBOL;
 				ins->data = (long)sym;
-				ins->arg[0] = (long)fast->argname[i + 1];
-				ins->arg[1] = (long)fast->argname[i + 2];
+				ins->arg[0] = fast->argname[i + 1];
+				ins->arg[1] = fast->argname[i + 2];
 				gen = 1;
 			}
 		}
@@ -1082,8 +1082,8 @@ void arg_to_dword (struct fastcall *fast, long i, long arg, long adj)
 						ins->code = X_LDD_S_B;
 
 					ins->data -= adj;
-					ins->arg[0] = (long)fast->argname[i + 1];
-					ins->arg[1] = (long)fast->argname[i + 2];
+					ins->arg[0] = fast->argname[i + 1];
+					ins->arg[1] = fast->argname[i + 2];
 					gen = 1;
 				}
 			}

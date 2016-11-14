@@ -1898,9 +1898,9 @@ void gen_asm (INS *inst)
 		ot("__ldd_i\t");
 		outdec(inst->data);
 		outstr(",");
-		outsymbol((char *)inst->arg[0]);
+		outsymbol(inst->arg[0]);
 		outstr(",");
-		outsymbol((char *)inst->arg[1]);
+		outsymbol(inst->arg[1]);
 		nl();
 		break;
 
@@ -1908,9 +1908,9 @@ void gen_asm (INS *inst)
 		ot("__ldd_b\t");
 		outsymbol((char *)inst->data);
 		outstr(",");
-		outsymbol((char *)inst->arg[0]);
+		outsymbol(inst->arg[0]);
 		outstr(",");
-		outsymbol((char *)inst->arg[1]);
+		outsymbol(inst->arg[1]);
 		nl();
 		break;
 
@@ -1918,9 +1918,9 @@ void gen_asm (INS *inst)
 		ot("__ldd_w\t");
 		outsymbol((char *)inst->data);
 		outstr(",");
-		outsymbol((char *)inst->arg[0]);
+		outsymbol(inst->arg[0]);
 		outstr(",");
-		outsymbol((char *)inst->arg[1]);
+		outsymbol(inst->arg[1]);
 		nl();
 		break;
 
@@ -1928,9 +1928,9 @@ void gen_asm (INS *inst)
 		ot("__ldd_s_b\t");
 		outdec(inst->data);
 		outstr(",");
-		outsymbol((char *)inst->arg[0]);
+		outsymbol(inst->arg[0]);
 		outstr(",");
-		outsymbol((char *)inst->arg[1]);
+		outsymbol(inst->arg[1]);
 		nl();
 		break;
 
@@ -1938,9 +1938,9 @@ void gen_asm (INS *inst)
 		ot("__ldd_s_w\t");
 		outdec(inst->data);
 		outstr(",");
-		outsymbol((char *)inst->arg[0]);
+		outsymbol(inst->arg[0]);
 		outstr(",");
-		outsymbol((char *)inst->arg[1]);
+		outsymbol(inst->arg[1]);
 		nl();
 		break;
 
