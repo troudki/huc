@@ -270,7 +270,7 @@ long primary (LVALUE *lval, int comma)
 			/* David, patched to support
 			 *        local 'static' variables
 			 */
-			lval->symbol = (SYMBOL *)ptr;
+			lval->symbol = ptr;
 			lval->indirect = ptr->type;
 			lval->tagsym = 0;
 			if (ptr->type == CSTRUCT)
@@ -306,7 +306,7 @@ long primary (LVALUE *lval, int comma)
 		ptr = findglb(sname);
 		if (ptr) {
 			if (ptr->ident != FUNCTION) {
-				lval->symbol = (SYMBOL *)ptr;
+				lval->symbol = ptr;
 				lval->indirect = 0;
 				lval->tagsym = 0;
 				if (ptr->type == CSTRUCT)
@@ -349,7 +349,7 @@ long primary (LVALUE *lval, int comma)
 		blanks();
 		if (ch() != '(') {
 			if (ptr && (ptr->ident == FUNCTION)) {
-				lval->symbol = (SYMBOL *)ptr;
+				lval->symbol = ptr;
 				lval->indirect = 0;
 				immed(T_SYMBOL, (long)ptr->name);
 				return (0);
@@ -358,7 +358,7 @@ long primary (LVALUE *lval, int comma)
 		}
 		ptr = addglb(sname, FUNCTION, CINT, 0, PUBLIC, 0);
 		indflg = 0;
-		lval->symbol = (SYMBOL *)ptr;
+		lval->symbol = ptr;
 		lval->indirect = 0;
 		return (0);
 	}

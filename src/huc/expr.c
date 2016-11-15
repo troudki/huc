@@ -804,7 +804,7 @@ long heir11 (LVALUE *lval, int comma)
 					lval->ptr_order = 0;
 				}
 			}
-			lval->symbol2 = ptr->far ? (SYMBOL *)ptr : (SYMBOL *)NULL;
+			lval->symbol2 = ptr->far ? ptr : NULL;
 			k = 1;
 		}
 		else if (match("(")) {
@@ -817,7 +817,7 @@ long heir11 (LVALUE *lval, int comma)
 					callfunction(ptr->name);
 				else {
 					if (ptr->far) {
-						lval->symbol2 = (SYMBOL *)ptr;
+						lval->symbol2 = ptr;
 						immed(T_VALUE, 0);
 					}
 					rvalue(lval);
@@ -854,7 +854,7 @@ long heir11 (LVALUE *lval, int comma)
 			if (k && direct == 0)
 				rvalue(lval);
 			out_ins(I_ADDWI, T_VALUE, ptr->offset);	// move pointer from struct begin to struct member
-			lval->symbol = (SYMBOL *)ptr;
+			lval->symbol = ptr;
 			lval->indirect = ptr->type;		// lval->indirect = lval->val_type = ptr->type
 			lval->ptr_type = 0;
 			lval->ptr_order = 0;
