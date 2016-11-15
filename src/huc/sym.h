@@ -13,5 +13,5 @@ long symname (char *sname);
 void illname (void);
 void multidef (char *sname);
 long glint (SYMBOL *sym);
-
+SYMBOL *copysym (SYMBOL *sym);
 #endif

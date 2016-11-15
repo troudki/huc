@@ -186,12 +186,14 @@
 #define ENDLOC  (symtab + SYMTBSZ - 1)
 
 /* symbol table entry format */
+/* N.B. nasty hack to allow space beyond NAMEMAX (see "copysym") */
 
-#define NAMESIZE        26
-#define NAMEMAX 25
+#define NAMESIZE	26
+#define NAMEMAX		25
+#define NAMEALLOC	40
 
 struct symbol {
-	char name[NAMESIZE];
+	char name[NAMEALLOC];
 	char ident;
 	char type;
 	char storage;

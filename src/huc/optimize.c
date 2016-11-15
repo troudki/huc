@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include "defs.h"
 #include "data.h"
+#include "sym.h"
 #include "code.h"
 #include "function.h"
 #include "io.h"
@@ -1029,12 +1030,14 @@ lv1_loop:
 			else if
 			((p[0]->code == I_ADDWI || p[0]->code == I_ADDBI) &&
 			 (p[1]->code == I_LDWI) &&
-
 			 (p[1]->type == T_SYMBOL)) {
 				/* replace code */
 				if (p[0]->data != 0) {
-					char *newsym = (char *)malloc(strlen((char *)p[1]->data) + 12);
-					sprintf(newsym, "%s+%ld", (char *)p[1]->data, p[0]->data);
+					SYMBOL * oldsym = (SYMBOL *)p[1]->data;
+					SYMBOL * newsym = copysym(oldsym);
+					if (NAMEALLOC <=
+						sprintf(newsym->name, "%s+%ld", oldsym->name, p[0]->data))
+						error("optimized symbol+offset name too long");
 					p[1]->data = (long)newsym;
 				}
 				nb = 1;

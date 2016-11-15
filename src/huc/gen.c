@@ -112,8 +112,10 @@ void getloc (SYMBOL *sym)
 		value = glint(sym);
 		if (norecurse && value < 0) {
 			/* XXX: bit of a memory leak, but whatever... */
-			char *locsym = (char *)malloc(strlen(current_fn) + 16);
-			sprintf(locsym, "_%s_lend-%ld", current_fn, -value);
+			SYMBOL * locsym = copysym(sym);
+			if (NAMEALLOC <=
+				sprintf(locsym->name, "_%s_lend-%ld", current_fn, -value))
+				error("norecurse local name too long");
 			out_ins(I_LDWI, T_SYMBOL, (long)locsym);
 		}
 		else {

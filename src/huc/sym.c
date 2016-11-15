@@ -4,6 +4,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include "defs.h"
 #include "data.h"
@@ -585,4 +586,14 @@ void multidef (char *sname)
 long glint (SYMBOL *sym)
 {
 	return (sym->offset);
+}
+
+SYMBOL *copysym (SYMBOL *sym)
+{
+	SYMBOL *ptr = malloc(sizeof(SYMBOL));
+	if (ptr == NULL)
+		error("out of memory to copy symbol");
+	else
+		memcpy(ptr, sym, sizeof(SYMBOL));
+	return (ptr);
 }
