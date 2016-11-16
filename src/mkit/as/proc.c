@@ -298,7 +298,7 @@ proc_reloc(void)
 
 	if(minbanks > bank_limit)
 	{
-		printf("Bank need excceed Bank limit, aborting\n");
+		printf("More banks needed than the output target supports, aborting\n");
 		return;
 	}
 
@@ -348,19 +348,19 @@ proc_reloc(void)
 				{
 					/* bank change */
 					minbanks++;
-					if (minbanks > bank_limit) 
+					if (minbanks > bank_limit)
 					{
 						int total = 0;
-		
+
 						fatal_error("Not enough ROM space for procs!");
-		
+
 						for(i = bank_base; i < bank; i++)
 						{
 							printf("Bank %d: %d free\n", i, bankleft[i]);
 							total += bankleft[i];
 						}
 						printf("Total free space in all banks %d\n", total);
-		
+
 						total = 0;
 						proc_ptr = proc_first;
 						while (proc_ptr) {
@@ -376,8 +376,8 @@ proc_reloc(void)
 					proposedbank = minbanks - 1;
 				}
 			}
-			
-			
+
+
 			proc_ptr->bank = proposedbank;
 			proc_ptr->org = 0x2000 - bankleft[proposedbank];
 
@@ -417,16 +417,16 @@ proc_reloc(void)
 				/* local symbols */
 				if (sym->local) {
 					local = sym->local;
-	
+
 					while (local) {
 						proc_ptr = local->proc;
-			
+
 						/* remap addr */
 						if (local->proc) {
 							local->bank   =  proc_ptr->bank;
 							local->value += (proc_ptr->org - proc_ptr->base);
 						}
-		
+
 						/* next */
 						local = local->next;
 					}
@@ -464,7 +464,7 @@ proc_look(void)
 	ptr = proc_tbl[hash];
 	while (ptr) {
 		if (!strcmp(&symbol[1], ptr->name))
-			break;			
+			break;
 		ptr = ptr->next;
 	}
 
@@ -554,11 +554,11 @@ proc_sortlist(void)
 		proc_ptr->link = NULL;
 
 		/* link it */
-		if (sorted_list == NULL) 
+		if (sorted_list == NULL)
 		{
 			sorted_list = proc_ptr;
 		}
-		else 
+		else
 		{
 			int inserted = 0;
 			struct t_proc *list = sorted_list;
@@ -580,7 +580,7 @@ proc_sortlist(void)
 					list = list->link;
 				}
 			}
-	
+
 			if(!inserted)
 				previous->link = proc_ptr;
 		}

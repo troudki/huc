@@ -5,15 +5,15 @@
 ; ----
 ; local variables
 
-	.bss
-_vdc	.ds 20*2
+		.bss
+__vdc:		.ds 20*2
 
-	.zp
-sign	.ds 1
-remain	.ds 2
+		.zp
+__sign:		.ds 1
+__remain:	.ds 2
 
-	.code
-.mlist
+		.code
+		.mlist
 
 ; ----
 ; eq
@@ -59,7 +59,7 @@ eqb:
 
 ; streamlined version - uses zp ( <__temp ) instead of stack
 ; returns A:X = 0 if false, 1 if true
-	
+
 eqzp:
 	cmp	<__temp+1
 	bne	.x_ne
@@ -781,14 +781,14 @@ lsrzp:
 ; ----
 
 smul:
-	stz	<sign	; until we call umul, sign keeps the sign parity
+	stz	<__sign	; until we call umul, sign keeps the sign parity
 			; of operand
 	cmp	#$80
 	bcc	smul_no_invert_primary
 
 	__negw
 
-	inc	<sign	; sign ++
+	inc	<__sign	; sign ++
 
 smul_no_invert_primary:
 	sta	<__temp
@@ -797,7 +797,7 @@ smul_no_invert_primary:
 	cmp	#$80
 	bcc	smul_no_invert_secondary
 
-	inc	<sign	; this time, no optimisation possible, IMHO :)
+	inc	<__sign	; this time, no optimisation possible, IMHO :)
 			; are you sure? :))
 	stx	<__temp+1
 
@@ -813,7 +813,7 @@ smul_no_invert_primary:
 	ldx <__temp+1
 
 smul_no_invert_secondary:
-	lda <sign
+	lda <__sign
 	pha
 	lda <__temp	; saved at the beginning of smul_no_invert_primary
 			; where we're sure we passed
@@ -904,14 +904,14 @@ umul8:
 ; ----
 
 sdiv:
-	stz	<sign	; until we call udiv, sign keeps the sign parity
+	stz	<__sign	; until we call udiv, sign keeps the sign parity
 			; of operand
 	cmp	#$80
 	bcc	sdiv_no_invert_primary
 
 	__negw
 
-	inc	<sign	; sign ++
+	inc	<__sign	; sign ++
 
 sdiv_no_invert_primary:
 	sta	<__temp
@@ -920,7 +920,7 @@ sdiv_no_invert_primary:
 	cmp	#$80
 	bcc	sdiv_no_invert_secondary
 
-	inc	<sign
+	inc	<__sign
 
 	stx	<__temp+1
 
@@ -936,7 +936,7 @@ sdiv_no_invert_primary:
 	ldx	<__temp+1
 
 sdiv_no_invert_secondary:
-	lda	<sign
+	lda	<__sign
 	pha
 	lda	<__temp	; saved at the beginning of sdiv_no_invert_primary
 			; where we're sure we passed
@@ -974,18 +974,18 @@ udiv:
 	__stw	<__temp
 
 	lda	#0
-	sta	<remain+1
+	sta	<__remain+1
 	ldy	#16
 .sdiv_begin:	asl	<__temp
 	rol	<__temp+1
 	rol	a
-	rol	<remain+1
+	rol	<__remain+1
 	pha
 	cmp	<__ptr
-	lda	<remain+1
+	lda	<__remain+1
 	sbc	<__ptr+1
 	bcc	.sdiv_end
-	sta	<remain+1
+	sta	<__remain+1
 	pla
 	sbc	<__ptr
 	pha
@@ -993,7 +993,7 @@ udiv:
 .sdiv_end:	pla
 	dey
 	bne	.sdiv_begin
-	sta	<remain
+	sta	<__remain
 
 	__addmi	2,__stack
 	__ldw	<__temp
@@ -1014,12 +1014,12 @@ udiv:
 ; ----
 
 smod:
-	stz	<sign
+	stz	<__sign
 	__stw	<__ptr
 	__ldwp	__stack
 	cmp	#$80
 	bcc	.skip1
-	inc	<sign
+	inc	<__sign
 	__negw
 	__stwp	__stack
 .skip1:	__ldw	<__ptr
@@ -1027,7 +1027,7 @@ smod:
 	bcc	.skip2
 	__negw
 .skip2:	jsr	umod
-	ldy	<sign
+	ldy	<__sign
 	beq	.noinv
 	__negw
 .noinv:	rts
@@ -1038,18 +1038,18 @@ umod:
 	__stw	<__temp
 
 	lda	#0
-	sta	<remain+1
+	sta	<__remain+1
 	ldy	#16
 .umod_begin:	asl	<__temp
 	rol	<__temp+1
 	rol	a
-	rol	<remain+1
+	rol	<__remain+1
 	pha
 	cmp	<__ptr
-	lda	<remain+1
+	lda	<__remain+1
 	sbc	<__ptr+1
 	bcc	.umod_end
-	sta	<remain+1
+	sta	<__remain+1
 	pla
 	sbc	<__ptr
 	pha
@@ -1057,10 +1057,10 @@ umod:
 .umod_end:	pla
 	dey
 	bne	.umod_begin
-	sta	<remain
+	sta	<__remain
 
 	__addmi	2,__stack
-	__ldw	<remain
+	__ldw	<__remain
 
 	rts
 
@@ -1093,7 +1093,7 @@ umod:
 ; ----
 
 ___case:
-	__stw	<remain		; store the value to check to
+	__stw	<__remain		; store the value to check to
 	__ldwp	__stack
 	__stw	<__ptr		; __ptr contain the address of the array
 
@@ -1112,16 +1112,16 @@ ___case:
 	beq	.case_default
 	iny
 	lda	[__ptr],y
-	cmp	<remain+0
+	cmp	<__remain+0
 	bne	.next_case_lo
 	iny
 	lda	[__ptr],y
-	cmp	<remain+1
+	cmp	<__remain+1
 	bne	.next_case_hi
 	dey			; found match
 	dey
 .case_vector:
-	lda	[__ptr],y	; read func hi-byte 
+	lda	[__ptr],y	; read func hi-byte
 	sta	<__temp+1
 	dey
 	lda	[__ptr],y	; read func lo-byte
@@ -1175,11 +1175,11 @@ setvdc:
 	; --
 	asl	A
 	sax
-	sta	_vdc,X
+	sta	__vdc,X
 	tya
-	sta	_vdc+1,X
+	sta	__vdc+1,X
 .l2:	__addmi	2,__sp
-	rts	
+	rts
 	; -- reg $09
 .l3:	txa
 	and	#$70
@@ -1205,9 +1205,9 @@ getvdc:
 	beq	.l1
 	; --
 	sxy
-	ldx	_vdc,Y
-	lda	_vdc+1,Y
-	rts	
+	ldx	__vdc,Y
+	lda	__vdc+1,Y
+	rts
 	; --
 .l1:	lda	#2
 	sta	<vdc_reg
@@ -1215,4 +1215,3 @@ getvdc:
 	ldx	video_data_l
 	lda	video_data_h
 	rts
-

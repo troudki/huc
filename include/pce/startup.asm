@@ -355,15 +355,15 @@ cdrom_err_load:
 	tam	#3
 	ldx	ovlarray,Y++
 	lda	ovlarray,Y++
-	stz	<cl		; sector (offset from base of track)
-	sta	<ch
-	stx	<dl
+	stz	<__cl		; sector (offset from base of track)
+	sta	<__ch
+	stx	<__dl
 	lda	ovlarray,Y
-	sta	<al		; # sectors
+	sta	<__al		; # sectors
 	lda	#$80
-	sta	<bl		; bank #
+	sta	<__bl		; bank #
 	lda	#3
-	sta	<dh		; MPR #
+	sta	<__dh		; MPR #
 	jsr	cd_read
 	cmp	#0
 	bne	.error
@@ -497,8 +497,8 @@ reset:
 
 	lda   #1
 	jsr   wait_vsync	; wait for one frame & randomize rndseed2
-	stw   #$03E7,<cx	; set random seed
-	stw   rndseed2,<dx
+	stw   #$03E7,<__cx	; set random seed
+	stw   rndseed2,<__dx
 	jsr   srand
 
 .if (CDROM)
@@ -526,15 +526,15 @@ loadprog:
 				; loaded us completely; do not try to load remainder
 				; (ie. executing CDROM error overlay)
 
-	stz   <cl		; initial boot doesn't load complete program;
-	stz   <ch		; prepare to load remainder
+	stz   <__cl		; initial boot doesn't load complete program;
+	stz   <__ch		; prepare to load remainder
 	lda   #10		; 10th sector (0-1 are boot;
 				; 2-9 are this library...)
-	sta   <dl
+	sta   <__dl
 	lda   #3		; load mode (consecutive banks; use MPR 3)
-	sta   <dh
-	stw   #(_bank_base+2),<bx	; 2 banks are boot/base library
-	stw   #(_nb_bank-2)*4,<ax
+	sta   <__dh
+	stw   #(_bank_base+2),<__bx	; 2 banks are boot/base library
+	stw   #(_nb_bank-2)*4,<__ax
 	jsr   cd_read
 	cmp   #$00
 	lbeq  init_go
@@ -612,7 +612,7 @@ dontloadprog:
 	stw   #$3f00,<__sp
 .endif
 
-	stw   #FONT_VADDR,<di	; Load Font @ VRAM addr
+	stw   #FONT_VADDR,<__di	; Load Font @ VRAM addr
 
 	;
 	; this section of font loading was stolen
@@ -622,30 +622,30 @@ dontloadprog:
 	; so we need to trick the segment pointer
 	; with a reliable one
 	;
-      __ldw   <di	; stolen from _load_default_font
+      __ldw   <__di	; stolen from _load_default_font
 			; because segment# default not reliable
 
 	jsr   _set_font_addr		; set VRAM
 
 .if (CDROM)
-	stb   #FONT_BANK+$80,<bl	; guarantee FONT_BANK even if
+	stb   #FONT_BANK+$80,<__bl	; guarantee FONT_BANK even if
 					; SCD on regular CDROM system
 .else
-	stb   #FONT_BANK+_bank_base,<bl
+	stb   #FONT_BANK+_bank_base,<__bl
 .endif
 
-	stb   #96,<cl
-	stb   font_color+1,<ah
+	stb   #96,<__cl
+	stb   font_color+1,<__ah
 	lda   font_color
 	bne   .fntld
 	inc   A
-.fntld:	sta   <al
+.fntld:	sta   <__al
 	clx
 	lda   font_table,X
-	sta   <si
+	sta   <__si
 	inx
 	lda   font_table,X
-	sta   <si+1
+	sta   <__si+1
 
 
 	; Now, load the font
@@ -704,19 +704,19 @@ dontloadprog:
 					; SCD on regular CDROM system
 	  tam	  #PAGE(scdmsg1)
 
-	  __stwi  <si, scdmsg1
+	  __stwi  <__si, scdmsg1
 	  __ldwi  $0180
 	  call    _put_string.2
 
-	  __stwi  <si, scdmsg2
+	  __stwi  <__si, scdmsg2
 	  __ldwi  $0200
 	  call    _put_string.2
 
-	  __stwi  <si, scdmsg3
+	  __stwi  <__si, scdmsg3
 	  __ldwi  $0383
 	  call    _put_string.2
 
-	  __stwi  <si, scdmsg4
+	  __stwi  <__si, scdmsg4
 	  __ldwi  $0403
 	  call    _put_string.2
 
@@ -1476,10 +1476,10 @@ wait_vsync:
 
 	lda   joycallback+1	; get events for all the 
 	beq  .t3		; selected joypads
-	sta  <al
+	sta  <__al
 	cly
 	cla
-.t1:    lsr  <al
+.t1:    lsr  <__al
 	bcc  .t2
 	ora   joybuf,Y
 .t2:	iny
