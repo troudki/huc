@@ -1662,6 +1662,7 @@ lv1_loop:
 					break;
 
 				case I_CALLS:
+				case I_ADDBS:
 				case I_ADDWS:
 				case I_SUBWS:
 				case I_ORWS:
