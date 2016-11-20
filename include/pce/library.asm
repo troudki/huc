@@ -1672,41 +1672,6 @@ _mem_mapdatabank:
 	cly
 	bra do_mapdatabank
 
-
-.ifdef HAVE_IRQ
-_irq_add_vsync_handler:
-	stx	<__temp
-	clx
-.loop	ldy	user_vsync_hooks+1, x
-	beq	.found
-	inx
-	inx
-	cpx	#8
-	bne	.loop
-	ldx	#1
-	cla
-	rts
-.found	ldy	<__temp
-	sei
-	sta	user_vsync_hooks+1, x
-	tya
-	sta	user_vsync_hooks, x
-	cli
-	clx
-	cla
-	rts
-
-_irq_enable_user:
-	txa
-	tsb	<huc_irq_enable
-	rts
-
-_irq_disable_user:
-	txa
-	trb	<huc_irq_enable
-	rts
-.endif ; HAVE_IRQ
-
 _timer_set:
 	stx	timer_cnt
 	rts

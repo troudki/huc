@@ -142,27 +142,6 @@ ram_hsync_hndl	.ds   25
 
 .endif	; (CDROM)
 
-.ifdef HUC
-
-.ifdef HAVE_IRQ
-user_vsync_hooks .ds	8
-user_hsync_hook	.ds	2
-huc_context	.ds	8
-
-.ifdef HAVE_SIRQ
-huc_fc_context	.ds	20
-.endif
-
-		.ds	32
-huc_irq_stack:
-
-		.zp
-huc_irq_enable	.ds	1
-
-.endif ; HAVE_IRQ
-
-.endif ; HUC
-
 ; [ STARTUP CODE ]
 
 ; Let's prepare the secondary library banks first, for use later.
@@ -959,13 +938,6 @@ irq1:
 user_irq1:
 	jmp   [irq1_jmp]
 
-.ifdef HAVE_IRQ
-user_hsync:
-	jmp   [user_hsync_hook]
-user_vsync:
-	jmp   [user_vsync_hooks, x]
-.endif
-
 
 ; ----
 ; vsync_hndl
@@ -1001,35 +973,6 @@ vsync_hndl:
 	stw   bg_x1,video_data
 	st0   #8
 	stw   bg_y1,video_data
-
-.ifdef HAVE_IRQ
-
-	bbr3 <huc_irq_enable,.disabled
-	tii	__sp, huc_context, 8
-.ifdef HAVE_SIRQ
-        tii	bp, huc_fc_context, 20
-.endif
-
-	stw   #huc_irq_stack, <__sp
-
-	clx
-.loop	lda   user_vsync_hooks+1, x
-	beq   .end_user
-	phx
-	jsr   user_vsync		; call user vsync routine
-	plx
-	inx
-	inx
-	bra .loop
-
-.end_user:
-	tii	huc_context, __sp, 8
-.ifdef HAVE_SIRQ
-        tii	huc_fc_context, bp, 20
-.endif
-.disabled:
-
-       .endif ; HAVE_IRQ
 
 	; --
 	lda   clock_tt		; keep track of time
@@ -1081,15 +1024,6 @@ vsync_hndl:
     ; hsync scrolling handler
     ;
 hsync_hndl:
-
-.ifdef HAVE_IRQ
-	bbr4 <huc_irq_enable,.disabled
-	tii	__sp, huc_context, 8
-	stw   #huc_irq_stack, <__sp
-	jsr  user_hsync		; call user handler
-	tii	huc_context, __sp, 8
-.disabled:
-.endif
 
 	ldy   s_idx
 	bpl  .r1
