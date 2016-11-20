@@ -757,14 +757,14 @@ do_op(void)
 				break;
 			}
 		}
-		val[0] = expr_lablptr->bank;
+		val[0] = expr_lablptr->bank + (val[0] / 8192) - (expr_lablptr->value / 8192);
 		break;
 
 	/* PAGE */
 	case OP_PAGE:
 		if (!check_func_args("PAGE"))
 			return (0);
-		val[0] = expr_lablptr->page;
+		val[0] = expr_lablptr->page + (val[0] / 8192) - (expr_lablptr->value / 8192);
 		break;
 
 	/* VRAM */
@@ -942,4 +942,3 @@ check_func_args(char *func_name)
 	error(string);
 	return (0);
 }
-

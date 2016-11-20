@@ -315,7 +315,7 @@ ovlentry:
 .ifndef SMALL
 	stw  #$4000,<__sp
 .else
-	stw  #$3f00,<__sp
+	stw  #$3fff,<__sp
 .endif
 	ldx  #$ff
 	txs
@@ -609,7 +609,7 @@ dontloadprog:
 .ifndef SMALL
 	stw   #$4000,<__sp	; init stack ptr first
 .else
-	stw   #$3f00,<__sp
+	stw   #$3fff,<__sp
 .endif
 
 	stw   #FONT_VADDR,<__di	; Load Font @ VRAM addr
