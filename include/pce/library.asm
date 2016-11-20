@@ -1723,14 +1723,14 @@ _timer_get:
 	tax
 	cla
 	rts
-_irq_enable:
+_irq_disable:
 	txa
 	sei
 	ora	irq_disable
 	sta	irq_disable
 	cli
 	rts
-_irq_disable:
+_irq_enable:
 	txa
 	eor	#$ff
 	sei
