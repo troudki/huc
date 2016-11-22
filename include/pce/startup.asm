@@ -24,33 +24,6 @@ SUPPORT_MOUSE	.equ	1
 .include  "standard.inc" ; HUCARD
 
 ; ----
-; setup flexible boundaries for startup code
-; and user program's "main".
-;
-START_BANK	.equ	0
-LIB1_BANK	.equ	START_BANK
-LIB2_BANK	.equ	START_BANK+1
-.ifdef HAVE_LIB3
-LIB3_BANK	.equ	START_BANK+2
-.endif
-
-.ifdef HUC
-FONT_BANK	.equ	START_BANK+1
-
-.ifdef HAVE_LIB3
-CONST_BANK	 .equ	START_BANK+3
-.else
-CONST_BANK	 .equ	START_BANK+2
-.endif
-DATA_BANK	 .equ	CONST_BANK+1
-
-.else ; HUC
-; HuC (because of .proc/.endp) does not use MAIN_BANK
-MAIN_BANK	.equ	START_BANK+2
-.endif	; HUC
-
-
-; ----
 ; if FONT_VADDR is not specified, then specify it
 ; (VRAM address to load font into)
 ;
@@ -67,7 +40,7 @@ zp_ptr1:	.ds 2
 
 		.bss
 
- .if  (CDROM)	; CDROM def's in system.inc
+.if  (CDROM)	; CDROM def's in system.inc
 
  .include  "system.inc"
 
@@ -109,7 +82,16 @@ scr_h:		.ds 1
 		.org	$2284
 soft_reset:	.ds 2	; soft reset jump loc (run+select)
 
-		.org	$2680
+		; include sound driver variables
+
+		.include  "sound.inc"
+
+		; sound.inc sets the starting location for these HuC variables
+		;
+		; this is normally $2680, but can be lower if a custom
+		; sound driver is used that doesn't need all of the
+		; standard System Card allocation of sound RAM.
+
 vsync_cnt:	.ds 1	; counter for 'wait_vsync' routine
 
 joybuf:		.ds 5	; 'delta' pad values collector
@@ -141,6 +123,31 @@ ram_vsync_hndl	.ds   25
 ram_hsync_hndl	.ds   25
 
 .endif	; (CDROM)
+
+; ----
+; setup flexible boundaries for startup code
+; and user program's "main".
+;
+		.rsset	0
+START_BANK	.rs	0
+LIB1_BANK	.rs	1
+LIB2_BANK	.rs	1
+.ifdef HAVE_LIB3
+LIB3_BANK	.rs	1
+.endif
+
+.if (NEED_SOUND_BANK)
+PSG_BANK	.rs	1
+.endif ; defined in sound.inc if needed
+
+.ifdef HUC
+FONT_BANK	.equ	LIB2_BANK
+CONST_BANK	.rs	1
+DATA_BANK	.rs	1
+.else ; HUC
+; HuC (because of .proc/.endp) does not use MAIN_BANK
+MAIN_BANK	.rs	1
+.endif	; HUC
 
 ; [ STARTUP CODE ]
 
@@ -422,6 +429,11 @@ reset:
 	sta   joyena
 
     ; ----
+    ; initialize the sound driver
+
+	__sound_init
+
+    ; ----
     ; initialize interrupt vectors
 
 .if  (CDROM)
@@ -455,7 +467,7 @@ reset:
 
 	vreg  #5
 	lda   #$C8
-	sta  <vdc_crl
+	sta   <vdc_crl
 	sta   video_data_l
 	st2   #$00
 	lda   #$01
@@ -842,9 +854,8 @@ system:
 	sta   joyena
 	lda   #$07		; set interrupt mask
 	sta   irq_disable
-	stz   irq_status		; reset timer interrupt
-	lda   #$80		; disable sound driver
-	sta   <$20E7
+	stz   irq_status	; reset timer interrupt
+
 	st0   #5		; enable display and vsync interrupt
 	lda   #$C8
 	sta  <vdc_crl
@@ -1003,6 +1014,10 @@ vsync_hndl:
 	inc   rndseed
 	jsr   randomize
 .endif
+
+	; invoke the sound driver's vsync irq code
+
+	__sound_vsync
 
 .ifdef SUPPORT_MOUSE
 	lda   msflag		; if mouse supported, and exists
@@ -1171,20 +1186,23 @@ __rcr_off:
 
 .if  !(CDROM)
 
-timer_user:
-	jmp   [timer_jmp]
-timer:
-	bbs2 <irq_m,timer_user
-	pha
-	phx
-	phy
+timer_user:	jmp		[timer_jmp]
 
-	sta   irq_status	; acknowledge interrupt
+timer:		bbs2		<irq_m,timer_user
+		pha
+		phx
+		phy
 
-.exit:	ply
-	plx
-	pla
-	rti
+		sta		irq_status	; acknowledge interrupt
+
+		; invoke the sound driver's timer irq code
+
+		__sound_timer
+
+		ply
+		plx
+		pla
+		rti
 
 .endif	; !(CDROM)
 
@@ -1248,12 +1266,20 @@ font_table:
 .endif	; HUC
 
 .ifdef SUPPORT_MOUSE
-.include "mouse.asm"
+ .include "mouse.asm"
 .endif	; SUPPORT_MOUSE
 
 .if (CDROM)
-.include "cdrom.asm"
-.endif   ; CDROM
+ .include "cdrom.asm"
+.endif	; CDROM
+
+.if (NEED_SOUND_CODE)
+ .include "sound.asm"
+.endif ; defined in sound.inc if needed
+
+;
+;
+;
 
 ; ----
 ; disp_on
