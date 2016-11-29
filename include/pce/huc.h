@@ -112,6 +112,15 @@
 #define ADWRITE_RAM	0
 #define ADWRITE_VRAM	0xFF
 
+void vsync(void);
+void satb_update(void);
+void __fastcall vsync(unsigned char num<acc>);
+void __fastcall satb_update(unsigned char max<acc>);
+void __fastcall vreg(unsigned char reg<acc>);
+void __fastcall vreg(unsigned char reg<__al>, unsigned int data<acc>);
+void __fastcall spr_hide(unsigned char num<acc>);
+void __fastcall spr_show(unsigned char num<acc>);
+
 void __fastcall set_map_pals(char far *pal<__bl:__si>);
 void set_map_tile_type(unsigned char);
 void set_map_tile_base(unsigned int vaddr);
@@ -126,4 +135,3 @@ unsigned char timer_get(void);
 
 void irq_enable(unsigned char irq);
 void irq_disable(unsigned char irq);
-

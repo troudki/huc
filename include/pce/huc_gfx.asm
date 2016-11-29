@@ -380,26 +380,33 @@ _put_string.main:
 	bne	.l1
 	rts
 
+; vsync()
 ; vsync(char nb_frame)
 ; ----
 
 _vsync:
-	txa
-	cpy	#0
-	bne	.l1
 	cla
-.l1:	jmp	wait_vsync
+	jmp	wait_vsync
+
+_vsync.1:
+	txa
+	jmp	wait_vsync
 
 ; vreg(char reg)
+; vreg(char reg, int data)
 ; ----
 
-_vreg:
-	cpy	#2
-	bne	.l1
-	jmp	setvdc
-.l1:
+_vreg.1:
 	stx	<vdc_reg
 	stx	video_reg
+	rts
+
+_vreg.2:
+	ldy	<__al
+	sty	<vdc_reg
+	sty	video_reg
+	stx	video_data
+	sta	video_data+1
 	rts
 
 ; vram_addr(char x [__al], char y)
@@ -709,7 +716,7 @@ _load_map.6:
 	bpl	.l3
 	addw	mapheight,<__bx
 	bra	.l2
-	
+
 	; ----
 	; adjust map x coordinate
 	;
@@ -767,9 +774,15 @@ _spr_set:
 ; spr_hide(char num)
 ; ----
 
+	; -- hide current sprite
 _spr_hide:
-	cpy	#0
-	beq	.l2
+	ldy	#1
+	lda	[spr_ptr],Y
+	ora	#$02
+	sta	[spr_ptr],Y
+	rts
+
+_spr_hide.1:
 	; -- hide sprite number #
 	cpx	#64
 	bhs	.l1
@@ -778,12 +791,7 @@ _spr_hide:
 	ora	#$02
 	sta	[__ptr],Y
 .l1:	rts
-	; -- hide current sprite
-.l2:	ldy	#1
-	lda	[spr_ptr],Y
-	ora	#$02
-	sta	[spr_ptr],Y
-	rts
+
 	; -- calc satb ptr
 _spr_hide.sub:
 	txa
@@ -803,9 +811,15 @@ _spr_hide.sub:
 ; spr_show(char num)
 ; ----
 
+	; -- hide current sprite
 _spr_show:
-	cpy	#0
-	beq	.l2
+	ldy	#1
+	lda	[spr_ptr],Y
+	and	#$01
+	sta	[spr_ptr],Y
+	rts
+
+_spr_show.1:
 	; -- hide sprite number #
 	cpx	#64
 	bhs	.l1
@@ -814,12 +828,6 @@ _spr_show:
 	and	#$01
 	sta	[__ptr],Y
 .l1:	rts
-	; -- hide current sprite
-.l2:	ldy	#1
-	lda	[spr_ptr],Y
-	and	#$01
-	sta	[spr_ptr],Y
-	rts
 
 ; spr_x(int value)
 ; ----
@@ -959,22 +967,24 @@ _spr_pri:
 	rts
 
 ; satb_update()
+; satb_update(char max)
 ; ----
 
 _satb_update:
+	ldx	<spr_max
+	bra	satb_update
+
+_satb_update.1:
 	lda	<spr_flag
-	beq	.l1
+	beq	satb_update
 	stz	<spr_flag
 	ldx	#64
-	bra	.l3
-	; --
-.l1:	cpy	#1
-	beq	.l2
-	ldx	<spr_max
-.l2:	cpx	#0
+
+satb_update:
+	cpx	#0
 	beq	.l4
 	; --
-.l3:	stx	<__al	; number of sprites
+	stx	<__al	; number of sprites
 	txa
 	dec	A	; round up to the next group of 4 sprites
 	lsr	A
@@ -997,7 +1007,7 @@ _satb_update:
 	addw	#32,<__si
 	dec	<__cl
 	bne	.l3a
-	
+
 ;.l3:	stx	<__al
 ;	stw	#satb,<__si
 ;	stb	#BANK(satb),<__bl
@@ -1014,7 +1024,6 @@ _satb_update:
 	ldx	<__al
 .l4:	cla
 	rts
-
 
 ; init_satb()
 ; reset_satb()
@@ -1462,7 +1471,7 @@ _gfx_clear:
 .l4:	stw	#0,video_data	; unrolled a bit (8 iterations
 	stw	#0,video_data	; @ 2 words each iteration)
 	dey
-	bne	.l4 
+	bne	.l4
 	dex
 	bne	.l3
 	dec	<__bl
@@ -1677,7 +1686,7 @@ lib2_gfx_line.5:		; Bresenham line drawing algorithm
 
 	subw	line_deltay,line_adjust
 	subw	line_deltay,line_adjust
-	
+
 	subw	line_deltay,line_error
 
 	incw	line_deltay		; used as counter - get both endpoints

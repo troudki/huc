@@ -756,10 +756,6 @@ void callfunction (char *ptr)
 	/* close */
 	needbrack(")");
 
-	/* push number of args */
-	if (nb == 0)
-		gnargs(ptr, cnt);
-
 	/* call function */
 	/* Reload fastcall arguments spilled to the native stack. */
 	if (sparg_idx) {

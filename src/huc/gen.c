@@ -18,39 +18,6 @@
 #include "const.h"
 #include "error.h"
 
-static char *needargs[] = {
-	"vreg",
-	"vsync",
-	"spr_hide", "spr_show",
-	"satb_update",
-	"map_load_tile",
-	NULL
-};
-
-/*
- *	gen arg count
- *
- */
-void gnargs (char *name, long nb)
-{
-	char *ptr;
-	long i;
-
-	if (name == NULL)
-		return;
-
-	for (i = 0;; i++) {
-		ptr = needargs[i];
-
-		if (ptr == NULL)
-			break;
-		if (strcmp(name, ptr) == 0) {
-			out_ins(I_NARGS, T_VALUE, nb);
-			break;
-		}
-	}
-}
-
 /*
  *	return next available internal label number
  *

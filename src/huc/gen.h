@@ -1,7 +1,6 @@
 #ifndef _GEN_H
 #define _GEN_H
 
-void gnargs (char *name, long nb);
 long getlabel (void);
 void getmem (SYMBOL *sym);
 void getio (SYMBOL *sym);

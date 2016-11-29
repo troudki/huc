@@ -323,12 +323,6 @@ void gen_code (INS *tmp)
 		ol("__stw\tvideo_data");
 		break;
 
-	case I_NARGS:
-		ot("  ldy\t#");
-		outdec(data);
-		nl();
-		break;
-
 	case I_LDB:
 	case I_LDBY:
 		if (code == I_LDBY)
