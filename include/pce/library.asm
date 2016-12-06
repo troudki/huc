@@ -1425,205 +1425,220 @@ lib2_init_psg:
 ; ----------------------------------
 
 ; ----
-; _strcpy(char *dest [__di], char *src [__si])
-; _strcat(char *dest [__di], char *src [__si])
+; char * _strncpy(char *dest [__di], char *src [__si], unsigned char count [acc])
+; char * _strncat(char *dest [__di], char *src [__si], unsigned char count [acc])
 ; ----
 ; Copy/Concatenate a string to another string
 ; ----
-;
-_strcat.2:
-.endlp:	lda	[__di]		; same as strcpy, but find end
-	beq	_strcpy.2	; of dest string first
-	incw	<__di
-	bra	.endlp
 
-_strcpy.2:
-.cpylp:	lda	[__si]
-	sta	[__di]
-	beq	.out
-	incw	<__di
-	incw	<__si
-	bra	.cpylp
-.out:	rts
+str_find_end:	pha
+.loop:		lda	[__di]
+		beq	.found
+		inc	<__di
+		bne	.loop
+		inc	<__di+1
+		bra	.loop
+.found:		pla
+		rts
 
+_strncat.3:     bsr	str_find_end
+
+_strncpy.3:	txa
+		eor	#$ff
+		tax
+
+		cly
+.loop:		inx
+		beq	str_terminate
+.copy:		lda	[__si],y
+		beq	str_terminate
+		sta	[__di],y
+		iny
+		bne	.loop
+		bra	str_overflow
 
 ; ----
-; _strncpy(char *dest [__di], char *src [__si], int count [acc])
-; _strncat(char *dest [__di], char *src [__si], int count [acc])
+; char * _strcat(char *dest [__di], char *src [__si])
+; char * _strcpy(char *dest [__di], char *src [__si])
 ; ----
 ; Copy/Concatenate a string to another string
 ; ----
-;
 
-_strncat.3:
-	__stw	<__ax
-	__ldw	<__di
-	__stw	<__bx
-.endlp:	lda	[__di]
-	beq	.cpylp
-	incw	<__di
-	bra	.endlp
-.cpylp:
-	jsr	strncpy_loop
-	cla
-	sta	[__di]
-	__ldw	<__bx
-.out:	rts
+_strcat.2:	bsr	str_find_end
 
-
-_strncpy.3:
-	__stw	<__ax
-	__ldw	<__di
-	__stw	<__bx
-	jsr	strncpy_loop
-	__ldw	<__bx
-	rts
-
-strncpy_loop:
-	lda	[__si]
-	sta	[__di]
-	beq	.out
-	incw	<__di
-	incw	<__si
-	decw	<__ax
-	tstw	<__ax
-	bne	strncpy_loop
-.out:	rts
+_strcpy.2:	cly
+.loop:		lda	[__si],y
+		sta	[__di],y
+		beq	memstr_finish
+		iny
+		bne	.loop
+str_overflow:	dey
+str_terminate:	cla
+		sta	[__di],y
+		bra	memstr_finish
 
 ; ----
-; _memcpy(char *dest [__di], char *src [__si], int count [acc])
+; char * _memcpy(char *dest [__di], char *src [__si], int count [acc])
 ; ----
 ; Copy memory
 ; ----
-;
-_memcpy.3:
-	__stw	<__ax
-	ora	<__al
-	beq	.done
-	__ldw	<__di
-	__stw	<__bx
-.cpylp:	lda	[__si]
-	sta	[__di]
-	incw	<__si
-	incw	<__di
-	decw	<__ax
-	tstw	<__ax
-	bne	.cpylp
-	__ldw	<__bx
-.done:	rts
 
-; same as memcpy, but returns end of dest
 _mempcpy.3:
-	__stw	<__cx
-	jsr _memcpy.3
-	__addw	<__cx
-	rts
+_memcpy.3:	stx	<__temp
+		cly
+		tax
+		beq	.done_pages
+.copy_page:	lda	[__si],y
+		sta	[__di],y
+		iny
+		bne	.copy_page
+		inc	<__si+1
+		inc	<__di+1
+		dex
+		bne	.copy_page
+.done_pages:	ldx	<__temp
+		beq	memstr_finish
+.copy_byte:	lda	[__si],y
+		sta	[__di],y
+		iny
+		dex
+		bne	.copy_byte
+.done_bytes: ;	bra	memstr_finish
 
-; _memset(char *s [__di], int c [__bx], int n [acc])
-_memset.3:
-	__stw	<__ax
-	ora	<__al
-	beq	.done
-.setlp:	lda	<__bx
-	sta	[__di]
-	incw	<__di
-	decw	<__ax
-	tstw	<__ax
-	bne	.setlp
-.done:	rts
+		; !!! WARNING : non-standard return value !!!
+		; it's actually a lot more useful to have these
+		; return a ptr to the end of the strcpy/strcat.
+
+memstr_finish:	tya
+		clc
+		adc	<__di
+		tax
+		lda	<__di+1
+		bcc	.exit
+		inc	a
+.exit:		rts
 
 ; ----
-; _memcmp(char *dest [__di], char *src [__si], int count [acc])
+; char * _memset(char *s [__di], int c [__bx], int n [acc])
+; ----
+; Set memory
+; ----
+
+_memset.3:	stx	<__temp
+		cly
+		tax
+		beq	.done_pages
+		lda	<__bx
+.set_page:	sta	[__di],y
+		iny
+		bne	.set_page
+		inc	<__si+1
+		inc	<__di+1
+		dex
+		bne	.set_page
+.done_pages:	ldx	<__temp
+		beq	memstr_finish
+		lda	<__bx
+.set_byte:	sta	[__di],y
+		iny
+		dex
+		bne	.set_byte
+.done_bytes:    bra	memstr_finish
+
+; ----
+; int _memcmp(char *dest [__di], char *src [__si], int count [acc])
 ; ----
 ; Compare memory
 ; ----
-;
-_memcmp.3:
-	__stw	<__ax
-	ora	<__al
-	beq	.done
-.cmplp:	lda	[__di]
-	sub	[__si]
-	bmi	.minus
-	beq	.cont
-.plus:	tax
-	cla
-	rts
-.minus:	tax
-	lda	#$ff
-	rts
-.cont:	incw	<__di
-	incw	<__si
-	decw	<__ax
-	tstw	<__ax
-	bne	.cmplp
-	clx
-.done:	rts
+
+_memcmp.3:	eor	#$ff
+		sta	<__temp
+		txa
+		eor	#$ff
+		tax
+		cly
+.loop:		inx
+		beq	.page
+.test:		lda	[__di],y
+		cmp	[__si],y
+		bmi	cmp_minus
+		bne	cmp_plus
+		iny
+		bne	.loop
+		inc	<__si+1
+		inc	<__di+1
+		bra	.loop
+.page:		inc	<__temp
+		bne	.test
+;		bra	cmp_same
+
+cmp_same:	ldx	#$00
+		cla
+		rts
+
+cmp_plus:	ldx	#$01
+		cla
+		rts
+
+cmp_minus:	ldx	#$FF
+		txa
+		rts
 
 ; ----
-; _strcmp(char *dest [__di], char *src [__si])
+; int _strcmp(char *dest [__di], char *src [__si])
 ; ----
 ; Compare strings
 ; ----
-;
-_strcmp.2:
-.cmplp:	lda	[__di]
-	sub	[__si]
-	bmi	.minus
-	beq	.cont
-.plus:	tax
-	cla
-	rts
-.minus:	tax
-	lda	#$ff
-	rts
-.cont:	lda	[__di]
-	beq	.out
-	incw	<__di
-	incw	<__si
-	bra	.cmplp
-.out:	clx
-	rts
+
+_strcmp.2:	cly
+.loop:		lda	[__di],y
+		cmp	[__si],y
+		bmi	cmp_minus
+		bne	cmp_plus
+		cmp	#0
+		beq	cmp_same
+		iny
+		bne	.loop
+		bra	cmp_same
 
 ; ----
-; _strncmp(char *dest [__di], char *src [__si], int count [acc])
+; int _strncmp(char *dest [__di], char *src [__si], unsigned char count [acc])
 ; ----
 ; Compare strings
 ; ----
-;
-_strncmp.3:
-	__stw	<__ax
-.cmplp:	lda	[__di]
-	sub	[__si]
-	bmi	.minus
-	beq	.cont
-.plus:	tax
-	cla
-	rts
-.minus:	tax
-	lda	#$ff
-	rts
-.cont:	lda	[__di]
-	beq	.out
-	incw	<__di
-	incw	<__si
-	decw	<__ax
-	tstw	<__ax
-	bne	.cmplp
-.out	clx
-	cla
-	rts
 
-_strlen.1:
-	cly
-.loop:	lda	[__si],y
-	beq	.out
-	iny
-	bra .loop
-.out:	tya
-	tax
-	cla
-	rts
+_strncmp.3:	txa
+		eor	#$ff
+		tax
+		cly
+.loop:		inx
+		beq	cmp_same
+.test:		lda	[__di],y
+		cmp	[__si],y
+		bmi	cmp_minus
+		bne	cmp_plus
+		cmp	#0
+		beq	cmp_same
+		iny
+		bne	.loop
+		bra	cmp_same
+
+; ----
+; unsigned char _strlen(char *src [__si])
+; ----
+; Strings length
+; ----
+
+_strlen.1:	cly
+.loop:		lda	[__si],y
+		beq	.done
+		iny
+		bne	.loop
+.done:		sxy
+		cla
+		rts
+
+; ----
 
 ___builtin_ffs.1:
 	maplibfunc lib2____builtin_ffs.1
