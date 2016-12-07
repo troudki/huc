@@ -909,14 +909,8 @@ set_read:
 	vreg	#$01
 	lda	<__di
 	sta	video_data_l
-.ifdef HUC
-	sta	__vdc+2
-.endif
 	lda	<__di+1
 	sta	video_data_h
-.ifdef HUC
-	sta	__vdc+3
-.endif
 	vreg	#$02
 	rts
 
@@ -933,14 +927,8 @@ set_write:
 	vreg	#$00
 	lda	<__di
 	sta	video_data_l
-.ifdef HUC
-	sta	__vdc
-.endif
 	lda	<__di+1
 	sta	video_data_h
-.ifdef HUC
-	sta	__vdc+1
-.endif
 	vreg	#$02
 	rts
 
@@ -1078,22 +1066,12 @@ xres	.equ 256
 	iny
 	sta	<vdc_reg
 	sta	video_reg
-.ifdef HUC
-	asl	A
-	tax
-.endif
 	lda	[__si],Y		; send the 16-bit data
 	iny
 	sta	video_data_l
-.ifdef HUC
-	sta	__vdc,X
-.endif
 	lda	[__si],Y
 	iny
 	sta	video_data_h
-.ifdef HUC
-	sta	__vdc+1,X
-.endif
 	cpy	#36		; loop if not at the end of the
 	bne	.l1		; table
 
@@ -1294,38 +1272,18 @@ lib2_set_xres:
 	lda	#$0a
 	sta	<vdc_reg
 	sta	video_reg
-.ifdef HUC
-	asl	A
-	sax
-.endif
 	lda	hsw
 	sta	video_data_l
-.ifdef HUC
-	sta	__vdc,X
-.endif
 	lda	hds
 	sta	video_data_h
-.ifdef HUC
-	sta	__vdc+1,X
-.endif
 
 	lda	#$0b
 	sta	<vdc_reg
 	sta	video_reg
-.ifdef HUC
-	asl	A
-	sax
-.endif
 	lda	hdw
 	sta	video_data_l
-.ifdef HUC
-	sta	__vdc,X
-.endif
 	lda	hde
 	sta	video_data_h
-.ifdef HUC
-	sta	__vdc+1,X
-.endif
 
 .xres_err:
 	lda	#$20
@@ -1362,9 +1320,6 @@ set_bat_size:
 	asl	A
 	asl	A
 	asl	A
-.ifdef HUC
-	sta	__vdc+18
-.endif
 	sta	video_data_l
 .endif
 	; --

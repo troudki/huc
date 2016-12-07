@@ -5,9 +5,6 @@
 ; ----
 ; local variables
 
-		.bss
-__vdc:		.ds 20*2
-
 		.zp
 __sign:		.ds 1
 __remain:	.ds 2
@@ -1153,31 +1150,16 @@ hook:
 ;      - value in A:X
 ; ----
 
-setvdc:
-	tay
+setvdc:	tay
 	lda	[__sp]
-	lsr	A
-	; --
+	lsr	a
 	cmp	#$09
 	beq	.l3
-	cmp	#$0A
-	blo	.l1
-	cmp	#$0F
-	blo	.l2
-	; --
+
 .l1:	sta	<vdc_reg
 	sta	video_reg
 	stx	video_data_l
 	sty	video_data_h
-	; --
-	cmp	#$02
-	beq	.l2
-	; --
-	asl	A
-	sax
-	sta	__vdc,X
-	tya
-	sta	__vdc+1,X
 .l2:	__addmi	2,__sp
 	rts
 	; -- reg $09
@@ -1200,18 +1182,14 @@ setvdc:
 ; OUT: vdc register in A:X
 ; ----
 
-getvdc:
-	cpx	#4
-	beq	.l1
-	; --
-	sxy
-	ldx	__vdc,Y
-	lda	__vdc+1,Y
-	rts
-	; --
-.l1:	lda	#2
+getvdc:	cpx	#4
+	bne	.l1
+	lda	#2
 	sta	<vdc_reg
 	sta	video_reg
 	ldx	video_data_l
 	lda	video_data_h
+	rts
+.l1:    clx
+	cla
 	rts
