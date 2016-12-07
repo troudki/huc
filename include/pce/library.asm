@@ -1491,11 +1491,30 @@ _memcpy.3:	stx	<__temp
 .copy_page:	lda	[__si],y
 		sta	[__di],y
 		iny
+;		lda	[__si],y
+;		sta	[__di],y
+;		iny
 		bne	.copy_page
 		inc	<__si+1
 		inc	<__di+1
 		dex
 		bne	.copy_page
+
+;.done_pages:	lsr	<__temp
+;		ldx	<__temp
+;		beq	memstr_finish
+;		bcs	.copy_1byte
+;		dex
+;.copy_2bytes:	lda	[__si],y
+;		sta	[__di],y
+;		iny
+;.copy_1byte:	lda	[__si],y
+;		sta	[__di],y
+;		iny
+;		dex
+;		bpl	.copy_2bytes
+;.done_bytes:	bra	memstr_finish
+
 .done_pages:	ldx	<__temp
 		beq	memstr_finish
 .copy_byte:	lda	[__si],y
@@ -1531,11 +1550,27 @@ _memset.3:	stx	<__temp
 		lda	<__bx
 .set_page:	sta	[__di],y
 		iny
+;		sta	[__di],y
+;		iny
 		bne	.set_page
 		inc	<__si+1
 		inc	<__di+1
 		dex
 		bne	.set_page
+
+;.done_pages:	lsr	<__temp
+;		ldx	<__temp
+;		beq	memstr_finish
+;		bcs	.set_1byte
+;		dex
+;.set_2bytes:	sta	[__di],y
+;		iny
+;.set_1byte:	sta	[__di],y
+;		iny
+;		dex
+;		bpl	.set_2bytes
+;.done_bytes:	bra	memstr_finish
+
 .done_pages:	ldx	<__temp
 		beq	memstr_finish
 		lda	<__bx
@@ -1543,7 +1578,7 @@ _memset.3:	stx	<__temp
 		iny
 		dex
 		bne	.set_byte
-.done_bytes:    bra	memstr_finish
+.done_bytes:	bra	memstr_finish
 
 ; ----
 ; int _memcmp(char *dest [__di], char *src [__si], int count [acc])
