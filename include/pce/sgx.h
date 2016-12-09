@@ -18,7 +18,7 @@ void __fastcall sgx_set_screen_size( unsigned char size<acc> );
 void __fastcall sgx_load_vram(unsigned int vaddr <__di>, int far *data<__bl:__si>, int nb<__cx>);
 
 void __fastcall sgx_set_tile_data(char *tile_ex<__di>);
-void __fastcall sgx_set_tile_data(char far *tile<__bl:__si>, int nb_tile<__cx>, char far *ptable<__al:__dx>);
+void __fastcall sgx_set_tile_data(char far *tile<__bl:__si>, int nb_tile<__cx>, char far *ptable<__al:__dx>, char type<__ah>);
 
 
 void __fastcall sgx_set_map_data(int *ptr<acc>);

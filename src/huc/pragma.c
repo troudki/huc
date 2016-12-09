@@ -73,7 +73,7 @@ static char *pragma_init[] = {
 	"fastcall set_map_data(farptr __bl:__si, word __ax, word acc)",
 	"fastcall set_map_data(farptr __bl:__si, word __ax, word __dx, byte acc)",
 	"fastcall set_tile_data(word __di)",
-	"fastcall set_tile_data(farptr __bl:__si, word __cx, farptr __al:__dx)",
+	"fastcall set_tile_data(farptr __bl:__si, word __cx, farptr __al:__dx, byte __ah)",
 	"fastcall put_tile(word __dx, word acc)",
 	"fastcall put_tile(word __dx, byte __al, byte acc)",
 	"fastcall map_get_tile(byte __dl, byte acc)",

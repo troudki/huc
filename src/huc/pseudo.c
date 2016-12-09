@@ -39,7 +39,6 @@ void dopsdinc (void)
 			error("missing (");
 
 		ol(".data");
-		ol(".dw $0");
 
 		readstr();	/* read the label name */
 		prefix();
@@ -93,7 +92,6 @@ void dopsdinc (void)
 			error("missing (");
 
 		ol(".data");
-		ol(".dw $0");
 
 		readstr();	/* read the label name */
 		prefix();
@@ -130,7 +128,6 @@ void dopsdinc (void)
 			error("missing (");
 
 		ol(".data");
-		ol(".dw $0");
 
 		readstr();	/* read the label name */
 		prefix();
@@ -185,7 +182,6 @@ void dopsdinc (void)
 			error("missing (");
 
 		ol(".data");
-		ol(".dw $0");
 
 		readstr();	/* read the label name */
 		prefix();
@@ -240,7 +236,6 @@ void dopsdinc (void)
 			error("missing (");
 
 		ol(".data");
-		ol(".dw $0800");
 
 		readstr();	/* read the label name */
 		prefix();
@@ -298,7 +293,6 @@ void dopsdinc (void)
 			error("missing (");
 
 		ol(".data");
-		ol(".dw $1000");
 
 		readstr();	/* read the label name */
 		prefix();
@@ -924,10 +918,6 @@ void do_inc_ex (long type)
 
 	/* dump incchr/tile cmds */
 	ol(".data");
-	if (type == 8)
-		ol(".dw $0800");
-	else
-		ol(".dw $1000");
 	prefix();
 	outstr(label2);
 	outstr(":\n");

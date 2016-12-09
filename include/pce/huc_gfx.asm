@@ -602,11 +602,12 @@ _get_map_height:
 	rts
 
 ; set_tile_data(char *tile_ex [__di])
-; set_tile_data(char *tile [__bl:__si], int nb_tile [__cx], char *ptable [__al:__dx])
+; set_tile_data(char *tile [__bl:__si], int nb_tile [__cx], char *ptable [__al:__dx], char type [__ah])
 ; ----
 ; tile,	tile base index
 ; nb_tile, number of tile
 ; ptable,	tile palette table address
+; type, tile type (8 or 16)
 ; ----
 
 _set_tile_data.1:
@@ -632,32 +633,13 @@ _set_tile_data.1:
 	lda	[__di],Y
 	sta	mapctable+1
 	rts
-_set_tile_data.3:
+_set_tile_data.4:
 	stb	<__bl,maptilebank
 	stw	<__si,maptileaddr
 	stw	<__cx,mapnbtile
 	stb	<__al,mapctablebank
 	stw	<__dx,mapctable
-	; --
-	ldy	<__bl		; get tile format (8x8 or 16x16)
-	lda	<__si+1
-	and	#$1F
-	tax
-	lda	<__si
-	bne	.l2
-	cpx	#$0
-	bne	.l1
-	dey
-	ldx	#$20
-.l1:	dex
-.l2:	dec	A
-	txa
-	ora	#$60
-	sta	<__si+1
-	tya
-	tam	#3
-	lda	[__si]
-	sta	maptiletype
+	stb	<__ah,maptiletype
 	rts
 
 ; load_tile(int addr)

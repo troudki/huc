@@ -1242,7 +1242,7 @@ _sgx_set_map_data.4:
 _sgx_set_tile_data.1:
 	ldy	#3
 	bra	lib3_group_1
-_sgx_set_tile_data.3:
+_sgx_set_tile_data.4:
 	ldy	#4
 	bra	lib3_group_1
 _sgx_load_tile:
@@ -1261,13 +1261,13 @@ lib3_group_select_1:
 	bcc	lib3_group_case_3 ;lib3_sgx_set_map_data.4
 	beq	lib3_group_case_4 ;lib3_sgx_set_tile_data.1
 	cpy	#5
-	bcc	lib3_group_case_5 ;lib3_sgx_set_tile_data.3
+	bcc	lib3_group_case_5 ;lib3_sgx_set_tile_data.4
 	bcs	lib3_group_case_6 ;lib3_sgx_load_tile
 
 lib3_group_case_6:
 	jmp lib3_sgx_load_tile
 lib3_group_case_5:
-	jmp lib3_sgx_set_tile_data.3
+	jmp lib3_sgx_set_tile_data.4
 lib3_group_case_4:
 	jmp lib3_sgx_set_tile_data.1
 lib3_group_case_3:
@@ -1332,11 +1332,12 @@ sgx_set_map_data.main:
 
 
 ; sgx_set_tile_data(char *tile_ex [__di])
-; sgx_set_tile_data(char *tile [__bl:__si], int nb_tile [__cx], char *ptable [__al:__dx])
+; sgx_set_tile_data(char *tile [__bl:__si], int nb_tile [__cx], char *ptable [__al:__dx], char type [__ah])
 ; ----
 ; tile,	tile base index
 ; nb_tile, number of tile
 ; ptable,	tile palette table address
+; type, tile type (8 or 16)
 ; ----
 
 	.bank	LIB2_BANK
@@ -1363,32 +1364,13 @@ lib3_sgx_set_tile_data.1:
 	lda	[__di],Y
 	sta	sgx_mapctable+1
 	rts
-lib3_sgx_set_tile_data.3:
+lib3_sgx_set_tile_data.4:
 	stb	<__bl,sgx_maptilebank
 	stw	<__si,sgx_maptileaddr
 	stw	<__cx,sgx_mapnbtile
 	stb	<__al,sgx_mapctablebank
 	stw	<__dx,sgx_mapctable
-	; --
-	ldy	<__bl	; get tile format (8x8 or 16x16)
-	lda	<__si+1
-	and	#$1F
-	tax
-	lda	<__si
-	bne	.l2
-	cpx	#$0
-	bne	.l1
-	dey
-	ldx	#$20
-.l1:	dex
-.l2:	dec a
-	txa
-	ora	#$60
-	sta	<__si+1
-	tya
-	tam	#3
-	lda	[__si]
-	sta	sgx_maptiletype
+	stb	<__ah,sgx_maptiletype
 	rts
 	.bank	LIB1_BANK
 
