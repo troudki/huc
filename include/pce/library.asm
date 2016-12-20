@@ -824,17 +824,6 @@ load_vram:
 	;
 	jsr	map_data
 
-;	; ----
-;	; setup call to TIA operation (fastest transfer)
-;	;
-;	; (instruction setup done during bootup...)
-;
-;	stw	#video_data, ram_hdwr_tia_dest
-;	stw	<__si, ram_hdwr_tia_src
-;
-;	asl	<__cl		; change from words to bytes (# to xfer)
-;	rol	<__ch
-
 	; ----
 	; set vram address
 	;
@@ -843,58 +832,72 @@ load_vram:
 	; ----
 	; copy data
 	;
-	cly
-	ldx	<__cl
-	beq	.l3
-	; --
-.l1:	lda	[__si],Y
-	sta	video_data_l
+	lda	#<video_data
+	sta	ram_hdwr_tia_dest+0
+	stz	ram_hdwr_tia_dest+1
+	lda	#$20
+	sta	ram_hdwr_tia_size+0
+	stz	ram_hdwr_tia_size+1
+
+	ldx	<__si+0
+	stx	ram_hdwr_tia_src+0
+	ldy	<__si+1
+	sty	ram_hdwr_tia_src+1
+
+	lda	<__cl			; length in chunks
+	lsr	<__ch
+	ror	a
+	lsr	<__ch
+	ror	a
+	lsr	<__ch
+	ror	a
+	lsr	<__ch
+	ror	a
+	sax				; x=chunks-lo
+	beq	.l4			; a=source-lo, y=source-hi
+
+	; ----
+	; copy data (32-byte chunks)
+	;
+.l1:	jsr	ram_hdwr_tia		; transfer 32-bytes
+
+	clc				; increment source
+	adc	#$20
+	sta	ram_hdwr_tia_src+0
+	bcc	.l3
 	iny
-	lda	[__si],Y
-	sta	video_data_h
-	iny
-	bne	.l2
-	inc	<__si+1
-	; --
-.l2:	dex
+
+	bpl	.l2			; remap_data
+	tay
+	tma4
+	tam3
+	inc	a
+	tam4
+	tya
+	ldy	#$60
+.l2:	sty	ram_hdwr_tia_src+1
+
+.l3:	dex
 	bne	.l1
-	; --
-	jsr	remap_data
-	; --
-.l3:	dec	<__ch
+.l4:	dec	<__ch
 	bpl	.l1
 
-;.l1:	lda	<__ch		; if zero-transfer, exit
-;	ora	<__cl
-;	beq	.out
-;
-;	lda	<__ch
-;	cmp	#$20		; if more than $2000, repeat xfers of $2000
-;	blo	.l2		; while adjusting banks
-;	sub	#$20		; reduce remaining transfer amount
-;	sta	<__ch
-;
-;	stw	#$2000, ram_hdwr_tia_size
-;	jsr	ram_hdwr_tia
-;
-;	lda	<__si+1		; force bank adjust
-;	add	#$20		; and next move starts at same location
-;	sta	<__si+1
-;
-;	jsr	remap_data	; adjust banks
-;	bra	.l1
-;
-;.l2:	sta	HIGH_BYTE ram_hdwr_tia_size	; 'remainder' transfer of < $2000
-;	lda	<__cl
-;	sta	LOW_BYTE	ram_hdwr_tia_size
-;	jsr	ram_hdwr_tia
+	; ----
+	; copy data (remainder)
+	;
+	lda	<__cl
+	and	#15
+	beq	.l5
+
+	asl	a
+	sta	ram_hdwr_tia_size+0
+	jsr	ram_hdwr_tia		; transfer remainder
 
 	; ----
 	; unmap data
 	;
 
-.out:	jmp	unmap_data
-
+.l5:	jmp	unmap_data
 
 
 ; ----

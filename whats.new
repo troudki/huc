@@ -1,6 +1,6 @@
 New in version 3.99:
 --------------------
-2016-12-08
+2016-12-20
 - Imported Uli's v3.98 version of HuC (https://github.com/uli/huc)
   See README for all the changes that Uli made
 - Applied changes from Artemio Urbina's fork of HuC
@@ -17,6 +17,10 @@ New in version 3.99:
     Note 3 : strncpy handing of the 'length' is the same as strncat
              This breaks ANSI/ISO compatibility, but reduces code size
 - Bumping version number for all the current changes
+- Stop HuC adding an extra ".dw" to usage of .incchr/.incspr/.incpal/etc
+- Add extra parameter to set_tile_data() to set the tile type (8 or 16)
+    set_tile_data(char *tile, int nb_tile, char *ptable, char type);
+- Rewrite load_vram to use 32-byte TIA instructions (3x speed improvement)
 
 New in version 3.21:
 --------------------
