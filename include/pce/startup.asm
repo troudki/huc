@@ -137,7 +137,7 @@ LIB3_BANK	.rs	1
 .endif
 
 .if (NEED_SOUND_BANK)
-PSG_BANK	.rs	1
+SOUND_BANK	.rs	1
 .endif ; defined in sound.inc if needed
 
 .ifdef HUC

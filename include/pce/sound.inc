@@ -11,7 +11,7 @@
 ;
 
 ;---------------------------------------------------------------------------
-; tell startup.asm that we need the PSG_BANK and to include sound.asm
+; tell startup.asm that we need the SOUND_BANK and to include sound.asm
 
 NEED_SOUND_BANK	= 0
 NEED_SOUND_CODE	= 0
