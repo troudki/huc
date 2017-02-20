@@ -154,16 +154,23 @@ hexcon(int digit, int num)
 void
 putbyte(int offset, int data)
 {
+	int addr;
+
 	if (bank >= RESERVED_BANK)
 		return;
-	if (offset < 0x2000) {
-		rom[bank][offset] = (data) & 0xFF;
-		map[bank][offset] = section + (page << 5);
 
-		/* update rom size */
-		if (bank > max_bank)
-			max_bank = bank;
+	addr = offset + 1 + (bank << 13);
+	if (addr > rom_limit) {
+		fatal_error("ROM overflow!");
+		return;
 	}
+
+	rom[bank][offset] = (data) & 0xFF;
+	map[bank][offset] = section + (page << 5);
+
+	/* update rom size */
+	if (((addr - 1) >> 13) > max_bank)
+		max_bank = ((addr - 1) >> 13);
 }
 
 
@@ -176,21 +183,28 @@ putbyte(int offset, int data)
 void
 putword(int offset, int data)
 {
+	int addr;
+
 	if (bank >= RESERVED_BANK)
 		return;
-	if (offset < 0x1FFF) {
-		/* low byte */
-		rom[bank][offset] = (data) & 0xFF;
-		map[bank][offset] = section + (page << 5);
 
-		/* high byte */
-		rom[bank][offset + 1] = (data >> 8) & 0xFF;
-		map[bank][offset + 1] = section + (page << 5);
-
-		/* update rom size */
-		if (bank > max_bank)
-			max_bank = bank;
+	addr = offset + 2 + (bank << 13);
+	if (addr > rom_limit) {
+		fatal_error("ROM overflow!");
+		return;
 	}
+
+	/* low byte */
+	rom[bank][offset] = (data) & 0xFF;
+	map[bank][offset] = section + (page << 5);
+
+	/* high byte */
+	rom[bank][offset + 1] = (data >> 8) & 0xFF;
+	map[bank][offset + 1] = section + (page << 5);
+
+	/* update rom size */
+	if (((addr - 1) >> 13) > max_bank)
+		max_bank = ((addr - 1) >> 13);
 }
 
 
