@@ -54,6 +54,7 @@ int dump_seg;
 int overlayflag;
 int develo_opt;
 int header_opt;
+int padding_opt;
 int srec_opt;
 int run_opt;
 int scd_opt;
@@ -104,6 +105,7 @@ main(int argc, char **argv)
 	/* init assembler options */
 	list_level = 2;
 	header_opt = 1;
+	padding_opt = 0;
 	overlayflag = 0;
 	develo_opt = 0;
 	mlist_opt = 0;
@@ -134,6 +136,10 @@ main(int argc, char **argv)
 				/* no header */
 				else if (!strcmp(argv[i], "-raw"))
 					header_opt = 0;
+
+				/* pad to power-of-two */
+				else if (!strcmp(argv[i], "-pad"))
+					padding_opt = 1;
 
 				/* output s-record file */
 				else if (!strcmp(argv[i], "-srec"))
@@ -515,6 +521,13 @@ main(int argc, char **argv)
 
 			/* binary file */
 			else {
+				/* pad rom to power-of-two? */
+				int num_banks = max_bank + 1;
+				if (padding_opt) {
+					num_banks = 1;
+					while (num_banks <= max_bank) num_banks <<= 1;
+				}
+
 				/* open file */
 				if ((fp = fopen(bin_fname, "wb")) == NULL) {
 					printf("Can not open binary file '%s'!\n", bin_fname);
@@ -523,10 +536,10 @@ main(int argc, char **argv)
 
 				/* write header */
 				if (header_opt)
-					machine->write_header(fp, max_bank + 1);
+					machine->write_header(fp, num_banks);
 
 				/* write rom */
-				fwrite(rom, 8192, (max_bank + 1), fp);
+				fwrite(rom, 8192, num_banks, fp);
 				fclose(fp);
 			}
 		}
@@ -548,6 +561,19 @@ main(int argc, char **argv)
 	/* dump the bank table */
 	if (dump_seg)
 		show_seg_usage();
+
+	/* warn about 384KB hucard rom size */
+	if (cd_opt == 0 && scd_opt == 0 && padding_opt == 0) {
+		if (max_bank == 0x2F) {
+			printf(
+				"\n!!!WARNING!!!\n"
+				"Most emulators expect a 384KB HuCard ROM to be in a split-image layout.\n\n"
+				"Unless you are patching an existing 384KB HuCard game image, you are\n"
+				"almost-certainly not using that layout, and your ROM will crash.\n\n"
+				"To avoid problems, add or remove enough data to avoid the 384KB size.\n"
+				"!!!WARNING!!!\n\n");
+		}
+	}
 
 	/* ok */
 	return (0);
@@ -609,6 +635,7 @@ help(void)
 	printf("-l #       : listing file output level (0-3)\n");
 	printf("-m         : force macro expansion in listing\n");
 	printf("-raw       : prevent adding a ROM header\n");
+	printf("-pad       : pad ROM size to power-of-two\n");
 	if (machine->type == MACHINE_PCE) {
 		printf("-cd        : create a CD-ROM track image\n");
 		printf("-scd       : create a Super CD-ROM track image\n");

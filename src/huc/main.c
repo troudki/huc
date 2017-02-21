@@ -1012,6 +1012,8 @@ long assemble (char *s)
 		break;
 
 	default:
+		opts[i++] = "-raw";
+		opts[i++] = "-pad";
 		break;
 	}
 
