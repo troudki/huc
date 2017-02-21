@@ -1,6 +1,6 @@
 New in version 3.99:
 --------------------
-2016-12-20
+2017-02-21
 - Imported Uli's v3.98 version of HuC (https://github.com/uli/huc)
   See README for all the changes that Uli made
 - Applied changes from Artemio Urbina's fork of HuC
@@ -21,6 +21,10 @@ New in version 3.99:
 - Add extra parameter to set_tile_data() to set the tile type (8 or 16)
     set_tile_data(char *tile, int nb_tile, char *ptable, char type);
 - Rewrite load_vram to use 32-byte TIA instructions (3x speed improvement)
+- Fix writing of instructions/data that cross a bank boundary.
+- Add "-pad" to PCEAS to pad out HuCard ROM images to next power-of-2 size.
+- Change HuC to use "-raw" and "-pad" options to avoid 384KB HuCard problem.
+- Add warning whenever a 384KB HuCard image is created to highlight problem.
 
 New in version 3.21:
 --------------------
