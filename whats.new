@@ -26,6 +26,9 @@ New in version 3.99:
 - Change HuC to use "-raw" and "-pad" options to avoid 384KB HuCard problem.
 - Add warning whenever a 384KB HuCard image is created to highlight problem.
 
+2018-05-30
+- Fix potential buffer overrun in optimize.c that GCC7 complains about.
+
 New in version 3.21:
 --------------------
 - Added support for adpcm

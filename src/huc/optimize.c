@@ -1036,7 +1036,7 @@ lv1_loop:
 					SYMBOL * oldsym = (SYMBOL *)p[1]->data;
 					SYMBOL * newsym = copysym(oldsym);
 					if (NAMEALLOC <=
-						sprintf(newsym->name, "%s+%ld", oldsym->name, p[0]->data))
+						snprintf(newsym->name, NAMEALLOC, "%s+%ld", oldsym->name, p[0]->data))
 						error("optimized symbol+offset name too long");
 					p[1]->data = (long)newsym;
 				}
