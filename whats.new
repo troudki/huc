@@ -28,6 +28,7 @@ New in version 3.99:
 
 2018-05-30
 - Fix potential buffer overrun in optimize.c that GCC7 complains about.
+- Increase switch label stack size from 100 to 256.
 
 New in version 3.21:
 --------------------
