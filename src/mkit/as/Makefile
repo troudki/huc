@@ -11,6 +11,10 @@ OBJS   = main.o input.o assemble.o expr.o code.o command.o\
          macro.o func.o proc.o symbol.o pcx.o output.o crc.o\
          pce.o map.o mml.o nes.o
 
+LIBS    = pngread/pngread.a
+
+CFLAGS  += -Ipngread
+
 TARGPCE  = pceas$(EXESUFFIX)
 TARGNES  = nesasm$(EXESUFFIX)
 TARGETS  = $(TARGPCE) $(TARGNES)
@@ -18,8 +22,14 @@ TARGETS  = $(TARGPCE) $(TARGNES)
 #
 #
 
-all: $(TARGETS)
+all::
+	$(MAKE) pngread "COMMAND=$@"
+	$(MAKE) $(TARGETS)
 
+.PHONY: pngread
+
+pngread:
+	$(MAKE) --directory=$@ $(COMMAND)
 
 # ASSEMBLER
 #
@@ -34,11 +44,11 @@ nes.o: nes.h
 #
 
 $(TARGPCE) : $(OBJS) $(LIBS)
-	$(CC) $(LDFLAGS) $(OBJS) -o $@
+	$(CC) $(LDFLAGS) $(OBJS) $(LIBS) -o $@
 	$(CP) $(TARGPCE) $(BINDIR)
 
 $(TARGNES) : $(OBJS) $(LIBS)
-	$(CC) $(LDFLAGS) $(OBJS) -o $@
+	$(CC) $(LDFLAGS) $(OBJS) $(LIBS) -o $@
 	$(CP) $(TARGNES) $(BINDIR)
 
 indent:	uncrustify.cfg
@@ -50,4 +60,5 @@ indent:	uncrustify.cfg
 include $(MAKETARG)
 
 clean::
+	$(MAKE) pngread "COMMAND=$@"
 	rm -f $(TARGETS) $(BINDIR)/$(TARGPCE) $(BINDIR)/$(TARGNES)
