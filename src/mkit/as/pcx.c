@@ -359,19 +359,23 @@ int
 pcx_load(char *name)
 {
 	FILE *f;
+	size_t l;
 
 	/* check if the file is the same as the previously loaded one;
 	 * if this is the case do not reload it
 	 */
-	if (strlen(name) && (strcasecmp(pcx_name, name) == 0))
+	if ((name[0] != '\0') && (strcasecmp(pcx_name, name) == 0))
 		return (1);
-	else {
-		/* no it's a new file - ok let's prepare loading */
-		if (pcx_buf)
-			free(pcx_buf);
-		pcx_buf = NULL;
-		pcx_name[0] = '\0';
-	}
+
+	/* do we want to load a png file instead of a pcx file? */
+	if (((l = strlen(name)) > 4) && (strcasecmp(".png", (name + l - 4)) == 0))
+		return (png_load(name));
+
+	/* no it's a new file - ok let's prepare loading */
+	if (pcx_buf)
+		free(pcx_buf);
+	pcx_buf = NULL;
+	pcx_name[0] = '\0';
 
 	/* open the file */
 	if ((f = open_file(name, "rb")) == NULL) {
@@ -589,3 +593,158 @@ decode_16(FILE *f, int w, int h)
 	pcx_nb_colors = 16;
 }
 
+
+/* ----
+ * png_load()
+ * ----
+ * load a PNG file and unpack it
+ */
+
+#include "png.h"
+
+int
+png_load(char *name)
+{
+	FILE *      pFile      = NULL;
+	png_structp pPngStruct = NULL;
+	png_infop   pPngInfo   = NULL;
+	png_byte ** aImageRows = NULL;
+	int         iPngRGB    = 0;
+	png_color * pPngRGB    = NULL;
+	png_uint_32 uWidth;
+	png_uint_32 uHeight;
+	int         iBitDepth;
+	int         iColorType;
+	unsigned    i;
+
+	#if 0
+	/* check if the file is the same as the previously loaded one;
+	 * if this is the case do not reload it
+	 */
+	if ((name[0] != '\0') && (strcasecmp(pcx_name, name) == 0))
+		return (1);
+	#endif
+
+	/* no it's a new file - ok let's prepare loading */
+	if (pcx_buf)
+		free(pcx_buf);
+	pcx_buf = NULL;
+	pcx_name[0] = '\0';
+
+	/* open the file */
+	if ((pFile = open_file(name, "rb")) == NULL) {
+		error("Can not open file!");
+		goto errorCleanup;
+	}
+
+	/* initialize libpng for reading the file */
+	pPngStruct = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+	if (!pPngStruct) {
+		error("Can not load file, not enough memory!");
+		goto errorCleanup;
+	}
+
+	pPngInfo = png_create_info_struct(pPngStruct);
+	if (!pPngInfo) {
+		error("Can not load file, not enough memory!");
+		goto errorCleanup;
+	}
+
+	if (setjmp(png_jmpbuf(pPngStruct))) {
+		error("Unsupported or invalid PNG file!");
+		goto errorCleanup;
+	}
+
+	png_init_io(pPngStruct, pFile);
+	png_read_info(pPngStruct, pPngInfo);
+
+	/* get the picture info */
+	png_get_IHDR(pPngStruct, pPngInfo, &uWidth, &uHeight, &iBitDepth, &iColorType, NULL, NULL, NULL);
+
+	if (iColorType != PNG_COLOR_TYPE_PALETTE) {
+		error("Unsupported or invalid PNG picture format!");
+		goto errorCleanup;
+	}
+
+	if (iBitDepth < 8)
+		png_set_packing(pPngStruct);
+
+	png_read_update_info(pPngStruct, pPngInfo);
+
+	/* adjust picture size to 8-pixel character boundaries */
+	pcx_w = (uWidth + 7) & ~7;
+	pcx_h = (uHeight + 7) & ~7;
+
+	/* check size range */
+	if ((pcx_w > 1024) || (pcx_h > 768)) {
+		error("Picture size too big, max. 1024x768!");
+		goto errorCleanup;
+	}
+	if ((pcx_w < 16) || (pcx_h < 16)) {
+		error("Picture size too small, min. 16x16!");
+		goto errorCleanup;
+	}
+
+	/* malloc a buffer */
+	pcx_buf = malloc(pcx_w * pcx_h);
+	if (pcx_buf == NULL) {
+		error("Can not load file, not enough memory!");
+		goto errorCleanup;
+	}
+
+	/* get the palette */
+	if (png_get_valid(pPngStruct, pPngInfo, PNG_INFO_PLTE)) {
+		png_get_PLTE(pPngStruct, pPngInfo, &pPngRGB, &iPngRGB);
+
+		for (i = 0; i < (unsigned) iPngRGB; i += 1) {
+			pcx_pal[i][0] = pPngRGB[i].red;
+			pcx_pal[i][1] = pPngRGB[i].green;
+			pcx_pal[i][2] = pPngRGB[i].blue;
+		}
+
+		for (i = iPngRGB; i < 256; i += 1) {
+			pcx_pal[i][0] = 0;
+			pcx_pal[i][1] = 0;
+			pcx_pal[i][2] = 0;
+		}
+
+		pcx_nb_colors = (iBitDepth <= 4) ? 16 : 256;
+	}
+
+	/* create a list of each row's starting point in memory */
+	aImageRows = (png_byte **) malloc(uHeight * sizeof(png_byte *));
+	if (aImageRows == NULL) {
+		error("Can not load file, not enough memory!");
+		goto errorCleanup;
+	}
+
+	for (i = 0; i < uHeight; i++)
+		aImageRows[i] = (png_byte *) (pcx_buf + pcx_w * i);
+
+	/* decode the picture */
+	png_read_image(pPngStruct, aImageRows);
+	png_read_end(pPngStruct, NULL);
+	png_destroy_read_struct(&pPngStruct, &pPngInfo, NULL);
+
+	free(aImageRows);
+
+	fclose(pFile);
+	strcpy(pcx_name, name);
+	return (1);
+
+	/* error handlers (reached via the dreaded goto) */
+	errorCleanup:
+
+	if (pPngInfo)
+		png_destroy_read_struct(&pPngStruct, &pPngInfo, NULL);
+	else if (pPngStruct)
+		png_destroy_read_struct(&pPngStruct, NULL, NULL);
+
+	if (aImageRows)
+		free(aImageRows);
+
+	if (pFile)
+		fclose(pFile);
+
+	return (0);
+}
