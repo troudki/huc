@@ -720,6 +720,11 @@ do_incbin(int *ip)
 				if (pce_load_map(fname, 0))
 					return;
 			}
+			/* check if it's a stm file */
+			if (!strcasecmp(p, ".stm")) {
+				if (pce_load_stm(fname, 0))
+					return;
+			}
 		}
 	}
 
