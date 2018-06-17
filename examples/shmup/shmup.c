@@ -14,9 +14,9 @@
 #incspr(explosion,"explosion.pcx",0,0,2,16)
 #incpal(explosionpal,"explosion.pcx")
 
-#incchr(scene_chr,"scene.pcx")
-#incpal(scene_pal,"scene.pcx")
-#incbat(scene_bat,"scene.pcx",0x1000,32,28)
+#incchr(scene_chr,"scene.png")
+#incpal(scene_pal,"scene.png")
+#incbat(scene_bat,"scene.png",0x1000,32,28)
 
 #define SPEED_X 2
 #define SPEED_Y 2
