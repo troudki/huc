@@ -1196,7 +1196,8 @@ do_incchr(int *ip)
 			ty = y + (i << 3);
 
 			/* get tile */
-			size = pcx_pack_8x8_tile(buffer, tx, ty);
+			pcx_pack_8x8_tile(buffer, tx, ty);
+			size = (machine->type == MACHINE_PCE) ? 32 : 16;
 			total += size;
 
 			/* store tile */

@@ -60,7 +60,7 @@ nes_pack_8x8_tile(unsigned char *buffer, void *data, int line_offset, int format
 
 	/* pack the tile only in the last pass */
 	if (pass != LAST_PASS)
-		return (16);
+		return (0);
 
 	/* clear buffer */
 	memset(buffer, 0, 16);
@@ -117,7 +117,7 @@ nes_pack_8x8_tile(unsigned char *buffer, void *data, int line_offset, int format
 	}
 
 	/* ok */
-	return (16);
+	return (0);
 }
 
 
@@ -132,7 +132,6 @@ nes_defchr(int *ip)
 {
 	unsigned char buffer[16];
 	unsigned int data[8];
-	int size;
 	int i;
 
 	/* define label */
@@ -154,10 +153,10 @@ nes_defchr(int *ip)
 	}
 
 	/* encode tile */
-	size = nes_pack_8x8_tile(buffer, data, 0, PACKED_TILE);
+	nes_pack_8x8_tile(buffer, data, 0, PACKED_TILE);
 
 	/* store tile */
-	putbuffer(buffer, size);
+	putbuffer(buffer, 16);
 
 	/* output line */
 	if (pass == LAST_PASS)

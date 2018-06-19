@@ -46,7 +46,7 @@ pce_pack_8x8_tile(unsigned char *buffer, void *data, int line_offset, int format
 
 	/* pack the tile only in the last pass */
 	if (pass != LAST_PASS)
-		return (32);
+		return (0);
 
 	/* clear buffer */
 	memset(buffer, 0, 32);
@@ -99,7 +99,7 @@ pce_pack_8x8_tile(unsigned char *buffer, void *data, int line_offset, int format
 	}
 
 	/* ok */
-	return (32);
+	return (0);
 }
 
 
@@ -119,7 +119,7 @@ pce_pack_16x16_tile(unsigned char *buffer, void *data, int line_offset, int form
 
 	/* pack the tile only in the last pass */
 	if (pass != LAST_PASS)
-		return (128);
+		return (0);
 
 	/* clear buffer */
 	memset(buffer, 0, 128);
@@ -160,7 +160,7 @@ pce_pack_16x16_tile(unsigned char *buffer, void *data, int line_offset, int form
 	}
 
 	/* ok */
-	return (128);
+	return (0);
 }
 
 
@@ -181,7 +181,7 @@ pce_pack_16x16_sprite(unsigned char *buffer, void *data, int line_offset, int fo
 
 	/* pack the sprite only in the last pass */
 	if (pass != LAST_PASS)
-		return (128);
+		return (0);
 
 	/* clear buffer */
 	memset(buffer, 0, 128);
@@ -258,7 +258,7 @@ pce_pack_16x16_sprite(unsigned char *buffer, void *data, int line_offset, int fo
 	}
 
 	/* ok */
-	return (128);
+	return (0);
 }
 
 
@@ -342,7 +342,6 @@ void
 pce_defchr(int *ip)
 {
 	unsigned int data[8];
-	int size;
 	int i;
 
 	/* output infos */
@@ -385,10 +384,10 @@ pce_defchr(int *ip)
 	}
 
 	/* encode tile */
-	size = pce_pack_8x8_tile(buffer, data, 0, PACKED_TILE);
+	pce_pack_8x8_tile(buffer, data, 0, PACKED_TILE);
 
 	/* store tile */
-	putbuffer(buffer, size);
+	putbuffer(buffer, 32);
 
 	/* output line */
 	if (pass == LAST_PASS)
@@ -465,7 +464,6 @@ void
 pce_defspr(int *ip)
 {
 	unsigned int data[32];
-	int size;
 	int i;
 
 	/* output infos */
@@ -508,10 +506,10 @@ pce_defspr(int *ip)
 	}
 
 	/* encode sprite */
-	size = pce_pack_16x16_sprite(buffer, data, 0, PACKED_TILE);
+	pce_pack_16x16_sprite(buffer, data, 0, PACKED_TILE);
 
 	/* store sprite */
-	putbuffer(buffer, size);
+	putbuffer(buffer, 128);
 
 	/* output line */
 	if (pass == LAST_PASS)
@@ -664,7 +662,6 @@ pce_incspr(int *ip)
 	unsigned int i, j;
 	int x, y, w, h;
 	unsigned int sx, sy;
-	unsigned int size;
 
 	/* define label */
 	labldef(loccnt, 1);
@@ -687,10 +684,10 @@ pce_incspr(int *ip)
 			sy = y + (i << 4);
 
 			/* encode sprite */
-			size = pcx_pack_16x16_sprite(buffer, sx, sy);
+			pcx_pack_16x16_sprite(buffer, sx, sy);
 
 			/* store sprite */
-			putbuffer(buffer, size);
+			putbuffer(buffer, 128);
 		}
 	}
 
@@ -713,7 +710,6 @@ pce_inctile(int *ip)
 	int x, y, w, h;
 	unsigned int tx, ty;
 	int nb_tile = 0;
-	int size = 0;
 
 	/* define label */
 	labldef(loccnt, 1);
@@ -736,10 +732,10 @@ pce_inctile(int *ip)
 			ty = y + (i << 4);
 
 			/* get tile */
-			size = pcx_pack_16x16_tile(buffer, tx, ty);
+			pcx_pack_16x16_tile(buffer, tx, ty);
 
 			/* store tile */
-			putbuffer(buffer, size);
+			putbuffer(buffer, 128);
 			nb_tile++;
 		}
 	}
@@ -749,7 +745,7 @@ pce_inctile(int *ip)
 		if (nb_tile) {
 			lastlabl->nb = nb_tile;
 			if (pass == LAST_PASS)
-				lastlabl->size = size;
+				lastlabl->size = 128;
 		}
 	}
 
@@ -771,7 +767,7 @@ pce_incmap(int *ip)
 	unsigned int i, j;
 	int x, y, w, h;
 	unsigned int tx, ty;
-	int tile, size;
+	int tile;
 	int err = 0;
 
 	/* define label */
@@ -795,10 +791,10 @@ pce_incmap(int *ip)
 			ty = y + (i << 4);
 
 			/* get tile */
-			size = pcx_pack_16x16_tile(buffer, tx, ty);
+			pcx_pack_16x16_tile(buffer, tx, ty);
 
 			/* search tile */
-			tile = pcx_search_tile(buffer, size);
+			tile = pcx_search_tile(buffer, 128);
 
 			if (tile == -1) {
 				/* didn't find the tile */
