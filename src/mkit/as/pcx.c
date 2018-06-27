@@ -15,7 +15,7 @@ int pcx_nb_args;			/* number of argument */
 unsigned int pcx_arg[8];		/* pcx args array */
 unsigned char *pcx_buf;			/* pointer to the pcx buffer */
 unsigned char pcx_pal[256][3];		/* palette */
-unsigned char pcx_plane[128][4];	/* plane buffer */
+unsigned char pcx_plane[2048][4];	/* plane buffer */
 unsigned int tile_offset;		/* offset in the tile reference table */
 struct t_tile tile[256];		/* tile info table */
 struct t_tile *tile_tbl[256];		/* tile hash table */
