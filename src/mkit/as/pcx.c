@@ -393,8 +393,8 @@ pcx_load(char *name)
 		pcx_w++;
 
 	/* check size range */
-	if ((pcx_w > 1024) || (pcx_h > 768)) {
-		error("Picture size too big, max. 1024x768!");
+	if ((pcx_w > 16384) || (pcx_h > 4096)) {
+		error("Picture size too big, max. 16384x4096!");
 		return (0);
 	}
 	if ((pcx_w < 16) || (pcx_h < 16)) {
@@ -676,8 +676,8 @@ png_load(char *name)
 	pcx_h = (uHeight + 7) & ~7;
 
 	/* check size range */
-	if ((pcx_w > 1024) || (pcx_h > 768)) {
-		error("Picture size too big, max. 1024x768!");
+	if ((pcx_w > 16384) || (pcx_h > 4096)) {
+		error("Picture size too big, max. 16384x4096!");
 		goto errorCleanup;
 	}
 	if ((pcx_w < 16) || (pcx_h < 16)) {
