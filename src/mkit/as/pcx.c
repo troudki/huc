@@ -234,7 +234,7 @@ pcx_search_tile(unsigned char *data, int size)
 /* ----
  * pcx_get_args()
  * ----
- * get arguments in pcx pseudo instructions (.incchr/spr/tile/pal/bat)
+ * get arguments in pcx pseudo instructions (.incchr/spr/tile/pal/bat/chrpal/sprpal/tilepal)
  */
 
 int
@@ -331,6 +331,14 @@ pcx_parse_args(int i, int nb, int *a, int *b, int *c, int *d, int size)
 		w = pcx_arg[i + 2];
 		h = pcx_arg[i + 3];
 	}
+
+	/* if w is zero, then calculate from image width */
+	if ((w == 0) && (x < pcx_w))
+		w = (pcx_w - x) / size;
+
+	/* if h is zero, then calculate from image height */
+	if ((h == 0) && (y < pcx_h))
+		h = (pcx_h - y) / size;
 
 	/* check */
 	if (((x + w * size) > pcx_w) || ((y + h * size) > pcx_h)) {
