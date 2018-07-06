@@ -7,7 +7,7 @@
 #include "pce.h"
 
 /* locals */
-static unsigned char buffer[16384];	/* buffer for .inc and .def directives */
+static unsigned char buffer[32768];	/* buffer for .inc and .def directives */
 static unsigned char header[512];	/* rom header */
 
 
@@ -26,6 +26,74 @@ pce_write_header(FILE *f, int banks)
 
 	/* write */
 	fwrite(header, 512, 1, f);
+}
+
+
+/* ----
+ * scan_8x8_tile()
+ * ----
+ * scan an 8x8 tile for its palette number
+ */
+
+int
+pce_scan_8x8_tile(unsigned int x, unsigned int y)
+{
+	int i, j;
+	unsigned int pixel;
+	unsigned char *ptr;
+
+	/* scan the tile only in the last pass */
+	if (pass != LAST_PASS)
+		return (0);
+
+	/* tile address */
+	ptr = pcx_buf + x + (y * pcx_w);
+
+	/* scan the tile for the 1st non-zero pixel */
+	for (i = 0; i < 8; i++) {
+		for (j = 0; j < 8; j++) {
+			pixel = ptr[j];
+			if (pixel & 0x0F) return (pixel >> 4);
+		}
+		ptr += pcx_w;
+	}
+
+	/* default palette */
+	return (0);
+}
+
+
+/* ----
+ * scan_16x16_tile()
+ * ----
+ * scan a 16x16 tile for its palette number
+ */
+
+int
+pce_scan_16x16_tile(unsigned int x, unsigned int y)
+{
+	int i, j;
+	unsigned int pixel;
+	unsigned char *ptr;
+
+	/* scan the tile only in the last pass */
+	if (pass != LAST_PASS)
+		return (0);
+
+	/* tile address */
+	ptr = pcx_buf + x + (y * pcx_w);
+
+	/* scan the tile for the 1st non-zero pixel */
+	for (i = 0; i < 16; i++) {
+		for (j = 0; j < 16; j++) {
+			pixel = ptr[j];
+			if (pixel & 0x0F) return (pixel >> 4);
+		}
+		ptr += pcx_w;
+	}
+
+	/* default palette */
+	return (0);
 }
 
 
@@ -700,7 +768,7 @@ pce_incspr(int *ip)
 /* ----
  * do_inctile()
  * ----
- * PCX to 16x16 tiles
+ * PCX to 16x16 tiles (max 256 tiles per inctile, wraps around if 257)
  */
 
 void
@@ -732,11 +800,36 @@ pce_inctile(int *ip)
 			ty = y + (i << 4);
 
 			/* get tile */
-			pcx_pack_16x16_tile(buffer, tx, ty);
-
-			/* store tile */
-			putbuffer(buffer, 128);
+			pcx_pack_16x16_tile(buffer + 128 * (nb_tile % 256), tx, ty);
 			nb_tile++;
+
+			/* max 256 tiles, with number 257 wrapping around to */
+			/* tile 0 to deal with art programs (like ProMotion) */
+			/* that always store a blank tile 0. */
+			if (nb_tile == 257) {
+				warning("Using the graphics from tile 256 as tile 0.");
+			} else
+			if (nb_tile >= 258) {
+				error("Too many tiles in image! The maximum is 256.");
+				return;
+			}
+		}
+	}
+
+	/* store a maximum of 256 tiles */
+	if (nb_tile > 256) nb_tile = 256;
+	if (nb_tile)
+		putbuffer(buffer, 128 * nb_tile);
+
+	/* size */
+	if (lablptr) {
+		lablptr->data_type = P_INCTILE;
+		lablptr->data_size = 128 * nb_tile;
+	}
+	else {
+		if (lastlabl) {
+			if (lastlabl->data_type == P_INCTILE)
+				lastlabl->data_size += 128 * nb_tile;
 		}
 	}
 
@@ -746,6 +839,229 @@ pce_inctile(int *ip)
 			lastlabl->nb = nb_tile;
 			if (pass == LAST_PASS)
 				lastlabl->size = 128;
+		}
+	}
+
+	/* output */
+	if (pass == LAST_PASS)
+		println();
+}
+
+
+/* ----
+ * do_incchrpal()
+ * ----
+ * PCX to palette array for 8x8 tiles
+ */
+
+void
+pce_incchrpal(int *ip)
+{
+	unsigned int i, j;
+	int x, y, w, h;
+	unsigned int tx, ty;
+	int nb_chr = 0;
+
+	/* define label */
+	labldef(loccnt, 1);
+
+	/* output */
+	if (pass == LAST_PASS)
+		loadlc(loccnt, 0);
+
+	/* get args */
+	if (!pcx_get_args(ip))
+		return;
+	if (!pcx_parse_args(0, pcx_nb_args, &x, &y, &w, &h, 16))
+		return;
+
+	/* scan tiles */
+	for (i = 0; i < h; i++) {
+		for (j = 0; j < w; j++) {
+			/* tile coordinates */
+			tx = x + (j << 3);
+			ty = y + (i << 3);
+
+			/* get chr palette */
+			buffer[0] = pce_scan_8x8_tile(tx, ty) << 4;
+
+			/* store palette number */
+			putbuffer(buffer, 1);
+			nb_chr++;
+		}
+	}
+
+	/* size */
+	if (lablptr) {
+		lablptr->data_type = P_INCCHRPAL;
+		lablptr->data_size = nb_chr;
+	}
+	else {
+		if (lastlabl) {
+			if (lastlabl->data_type == P_INCCHRPAL)
+				lastlabl->data_size += nb_chr;
+		}
+	}
+
+	/* attach the number of tile palette bytes to the label */
+	if (lastlabl) {
+		if (nb_chr) {
+			lastlabl->nb = nb_chr;
+			if (pass == LAST_PASS)
+				lastlabl->size = 1;
+		}
+	}
+
+	/* output */
+	if (pass == LAST_PASS)
+		println();
+}
+
+
+/* ----
+ * do_incsprpal()
+ * ----
+ * PCX to palette array for 16x16 sprites
+ */
+
+void
+pce_incsprpal(int *ip)
+{
+	unsigned int i, j;
+	int x, y, w, h;
+	unsigned int tx, ty;
+	int nb_sprite = 0;
+
+	/* define label */
+	labldef(loccnt, 1);
+
+	/* output */
+	if (pass == LAST_PASS)
+		loadlc(loccnt, 0);
+
+	/* get args */
+	if (!pcx_get_args(ip))
+		return;
+	if (!pcx_parse_args(0, pcx_nb_args, &x, &y, &w, &h, 16))
+		return;
+
+	/* scan sprites */
+	for (i = 0; i < h; i++) {
+		for (j = 0; j < w; j++) {
+			/* sprite coordinates */
+			tx = x + (j << 4);
+			ty = y + (i << 4);
+
+			/* get sprite palette */
+			buffer[0] = pce_scan_16x16_tile(tx, ty);
+
+			/* store palette number */
+			putbuffer(buffer, 1);
+			nb_sprite++;
+		}
+	}
+
+	/* size */
+	if (lablptr) {
+		lablptr->data_type = P_INCSPRPAL;
+		lablptr->data_size = nb_sprite;
+	}
+	else {
+		if (lastlabl) {
+			if (lastlabl->data_type == P_INCSPRPAL)
+				lastlabl->data_size += nb_sprite;
+		}
+	}
+
+	/* attach the number of sprite palette bytes to the label */
+	if (lastlabl) {
+		if (nb_sprite) {
+			lastlabl->nb = nb_sprite;
+			if (pass == LAST_PASS)
+				lastlabl->size = 1;
+		}
+	}
+
+	/* output */
+	if (pass == LAST_PASS)
+		println();
+}
+
+
+/* ----
+ * do_inctilepal()
+ * ----
+ * PCX to palette array for 16x16 tiles
+ */
+
+void
+pce_inctilepal(int *ip)
+{
+	unsigned int i, j;
+	int x, y, w, h;
+	unsigned int tx, ty;
+	int nb_tile = 0;
+
+	/* define label */
+	labldef(loccnt, 1);
+
+	/* output */
+	if (pass == LAST_PASS)
+		loadlc(loccnt, 0);
+
+	/* get args */
+	if (!pcx_get_args(ip))
+		return;
+	if (!pcx_parse_args(0, pcx_nb_args, &x, &y, &w, &h, 16))
+		return;
+
+	/* scan tiles */
+	for (i = 0; i < h; i++) {
+		for (j = 0; j < w; j++) {
+			/* tile coordinates */
+			tx = x + (j << 4);
+			ty = y + (i << 4);
+
+			/* get tile palette */
+			buffer[(nb_tile % 256)] = pce_scan_16x16_tile(tx, ty) << 4;
+			nb_tile++;
+
+			/* max 256 tiles, with number 257 wrapping around to */
+			/* tile 0 to deal with art programs (like ProMotion) */
+			/* that always store a blank tile 0. */
+			if (nb_tile == 257) {
+				warning("Using the palette from tile 256 for tile 0.");
+			} else
+			if (nb_tile >= 258) {
+				error("Too many tiles in image! The maximum is 256.");
+				return;
+			}
+		}
+	}
+
+	/* store a maximum of 256 tile palettes */
+	if (nb_tile > 256) nb_tile = 256;
+	if (nb_tile)
+		putbuffer(buffer, nb_tile);
+
+	/* size */
+	if (lablptr) {
+		lablptr->data_type = P_INCTILEPAL;
+		lablptr->data_size = nb_tile;
+	}
+	else {
+		if (lastlabl) {
+			if (lastlabl->data_type == P_INCTILEPAL)
+				lastlabl->data_size += nb_tile;
+		}
+	}
+
+	/* attach the number of tile palette bytes to the label */
+	if (lastlabl) {
+		if (nb_tile) {
+			lastlabl->nb = nb_tile;
+			if (pass == LAST_PASS)
+				lastlabl->size = 1;
 		}
 	}
 

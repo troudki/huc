@@ -102,6 +102,9 @@
 #define P_CALL		49	// .call
 #define P_DWL		50	// lsb of a WORD
 #define P_DWH		51	// lsb of a WORD
+#define P_INCCHRPAL	52	// .incchrpal
+#define P_INCSPRPAL	53	// .incsprpal
+#define P_INCTILEPAL	54	// .inctilepal
 
 /* symbol flags */
 #define MDEF	3	/* multiply defined */

@@ -1,5 +1,7 @@
 /* PCE.C */
 void pce_write_header(FILE *f, int banks);
+int  pce_scan_8x8_tile(unsigned int x, unsigned int y);
+int  pce_scan_16x16_tile(unsigned int x, unsigned int y);
 int  pce_pack_8x8_tile(unsigned char *buffer, void *data, int line_offset, int format);
 int  pce_pack_16x16_tile(unsigned char *buffer, void *data, int line_offset, int format);
 int  pce_pack_16x16_sprite(unsigned char *buffer, void *data, int line_offset, int format);
@@ -15,6 +17,9 @@ void pce_vram(int *ip);
 void pce_pal(int *ip);
 void pce_develo(int *ip);
 void pce_mml(int *ip);
+void pce_incchrpal(int *ip);
+void pce_incsprpal(int *ip);
+void pce_inctilepal(int *ip);
 
 /* MML.C */
 int mml_start(unsigned char *buffer);
@@ -109,30 +114,36 @@ struct t_opcode pce_inst[82] = {
 };
 
 /* PCE specific pseudos */
-struct t_opcode pce_pseudo[23] = {
-	{NULL,  "DEFCHR", pce_defchr, PSEUDO, P_DEFCHR, 0},
-	{NULL,  "DEFPAL", pce_defpal, PSEUDO, P_DEFPAL, 0},
-	{NULL,  "DEFSPR", pce_defspr, PSEUDO, P_DEFSPR, 0},
-	{NULL,  "INCBAT", pce_incbat, PSEUDO, P_INCBAT, 0xD5},
-	{NULL,  "INCSPR", pce_incspr, PSEUDO, P_INCSPR, 0xEA},
-	{NULL,  "INCPAL", pce_incpal, PSEUDO, P_INCPAL, 0xF8},
-	{NULL,  "INCTILE",pce_inctile,PSEUDO, P_INCTILE,0xEA},
-	{NULL,  "INCMAP", pce_incmap, PSEUDO, P_INCMAP, 0xD5},
-	{NULL,  "MML",    pce_mml,    PSEUDO, P_MML,    0},
-	{NULL,  "PAL",    pce_pal,    PSEUDO, P_PAL,    0},
-	{NULL,  "VRAM",   pce_vram,   PSEUDO, P_VRAM,   0},
+struct t_opcode pce_pseudo[29] = {
+	{NULL,  "DEFCHR",    pce_defchr,    PSEUDO, P_DEFCHR,    0},
+	{NULL,  "DEFPAL",    pce_defpal,    PSEUDO, P_DEFPAL,    0},
+	{NULL,  "DEFSPR",    pce_defspr,    PSEUDO, P_DEFSPR,    0},
+	{NULL,  "INCBAT",    pce_incbat,    PSEUDO, P_INCBAT,    0xD5},
+	{NULL,  "INCSPR",    pce_incspr,    PSEUDO, P_INCSPR,    0xEA},
+	{NULL,  "INCPAL",    pce_incpal,    PSEUDO, P_INCPAL,    0xF8},
+	{NULL,  "INCTILE",   pce_inctile,   PSEUDO, P_INCTILE,   0xEA},
+	{NULL,  "INCMAP",    pce_incmap,    PSEUDO, P_INCMAP,    0xD5},
+	{NULL,  "INCCHRPAL", pce_incchrpal, PSEUDO, P_INCCHRPAL, 0xEA},
+	{NULL, ".INCSPRPAL", pce_incsprpal, PSEUDO, P_INCSPRPAL, 0xEA},
+	{NULL,  "INCTILEPAL",pce_inctilepal,PSEUDO, P_INCTILEPAL,0xEA},
+	{NULL,  "MML",       pce_mml,       PSEUDO, P_MML,       0},
+	{NULL,  "PAL",       pce_pal,       PSEUDO, P_PAL,       0},
+	{NULL,  "VRAM",      pce_vram,      PSEUDO, P_VRAM,      0},
 
-	{NULL, ".DEFCHR", pce_defchr, PSEUDO, P_DEFCHR, 0},
-	{NULL, ".DEFPAL", pce_defpal, PSEUDO, P_DEFPAL, 0},
-	{NULL, ".DEFSPR", pce_defspr, PSEUDO, P_DEFSPR, 0},
-	{NULL, ".INCBAT", pce_incbat, PSEUDO, P_INCBAT, 0xD5},
-	{NULL, ".INCSPR", pce_incspr, PSEUDO, P_INCSPR, 0xEA},
-	{NULL, ".INCPAL", pce_incpal, PSEUDO, P_INCPAL, 0xF8},
-	{NULL, ".INCTILE",pce_inctile,PSEUDO, P_INCTILE,0xEA},
-	{NULL, ".INCMAP", pce_incmap, PSEUDO, P_INCMAP, 0xD5},
-	{NULL, ".MML",    pce_mml,    PSEUDO, P_MML,    0},
-	{NULL, ".PAL",    pce_pal,    PSEUDO, P_PAL,    0},
-	{NULL, ".VRAM",   pce_vram,   PSEUDO, P_VRAM,   0},
+	{NULL, ".DEFCHR",    pce_defchr,    PSEUDO, P_DEFCHR,    0},
+	{NULL, ".DEFPAL",    pce_defpal,    PSEUDO, P_DEFPAL,    0},
+	{NULL, ".DEFSPR",    pce_defspr,    PSEUDO, P_DEFSPR,    0},
+	{NULL, ".INCBAT",    pce_incbat,    PSEUDO, P_INCBAT,    0xD5},
+	{NULL, ".INCSPR",    pce_incspr,    PSEUDO, P_INCSPR,    0xEA},
+	{NULL, ".INCPAL",    pce_incpal,    PSEUDO, P_INCPAL,    0xF8},
+	{NULL, ".INCTILE",   pce_inctile,   PSEUDO, P_INCTILE,   0xEA},
+	{NULL, ".INCMAP",    pce_incmap,    PSEUDO, P_INCMAP,    0xD5},
+	{NULL, ".INCCHRPAL", pce_incchrpal, PSEUDO, P_INCCHRPAL, 0xEA},
+	{NULL, ".INCSPRPAL", pce_incsprpal, PSEUDO, P_INCSPRPAL, 0xEA},
+	{NULL, ".INCTILEPAL",pce_inctilepal,PSEUDO, P_INCTILEPAL,0xEA},
+	{NULL, ".MML",       pce_mml,       PSEUDO, P_MML,       0},
+	{NULL, ".PAL",       pce_pal,       PSEUDO, P_PAL,       0},
+	{NULL, ".VRAM",      pce_vram,      PSEUDO, P_VRAM,      0},
 	{NULL, NULL, NULL, 0, 0, 0}
 };
 /* *INDENT-ON* */
