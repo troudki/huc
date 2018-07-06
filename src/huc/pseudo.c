@@ -231,6 +231,60 @@ void dopsdinc (void)
 		kill();
 	}
 	else
+	if (amatch("sprpal", 6)) {
+		if (!match("("))
+			error("missing (");
+
+		ol(".data");
+
+		readstr();	/* read the label name */
+		prefix();
+		outstr(litq2);
+		outstr(":\n");
+		addglb_far(litq2, CINT);
+
+		if (!match(",")) {
+			error("missing ,");
+			kill();
+			return;
+		}
+
+		ot(".incsprpal \"");
+
+		if (readqstr() == 0) {
+			error("bad filename in incsprpal");
+			kill();
+			return;
+		}
+
+		outstr(litq2);
+		outstr("\"");
+
+		if (match(","))
+			outstr(",");
+
+		numericarg = 0;
+
+		while (!match(")")) {
+			numericarg++;
+
+			number(&dummy);
+			outdec(dummy);
+			if (match(","))
+				outstr(",");
+		}
+
+		nl();
+		ol(".code");
+
+		if ((numericarg != 0) &&
+		    (numericarg != 2) &&
+		    (numericarg != 4))
+			error("Either 0,2 or 4 numeric arguments are needed for incsprpal statement");
+
+		kill();
+	}
+	else
 	if (amatch("chr", 3)) {
 		if (!match("("))
 			error("missing (");
@@ -281,6 +335,60 @@ void dopsdinc (void)
 		    (numericarg != 2) &&
 		    (numericarg != 4))
 			error("Either 0,2 or 4 numeric arguments are needed for incchr statement");
+
+		kill();
+	}
+	else
+	if (amatch("chrpal", 6)) {
+		if (!match("("))
+			error("missing (");
+
+		ol(".data");
+
+		readstr();	/* read the label name */
+		prefix();
+		outstr(litq2);
+		outstr(":\n");
+		addglb_far(litq2, CINT);
+
+		if (!match(",")) {
+			error("missing ,");
+			kill();
+			return;
+		}
+
+		ot(".incchrpal \"");
+
+		if (readqstr() == 0) {
+			error("bad filename in incchrpal");
+			kill();
+			return;
+		}
+
+		outstr(litq2);
+		outstr("\"");
+
+		if (match(","))
+			outstr(",");
+
+		numericarg = 0;
+
+		while (!match(")")) {
+			numericarg++;
+
+			number(&dummy);
+			outdec(dummy);
+			if (match(","))
+				outstr(",");
+		}
+
+		nl();
+		ol(".code");
+
+		if ((numericarg != 0) &&
+		    (numericarg != 2) &&
+		    (numericarg != 4))
+			error("Either 0,2 or 4 numeric arguments are needed for incchrpal statement");
 
 		kill();
 	}
@@ -338,6 +446,60 @@ void dopsdinc (void)
 		    (numericarg != 2) &&
 		    (numericarg != 4))
 			error("Either 0,2 or 4 numeric arguments are needed for inctile statement");
+
+		kill();
+	}
+	else
+	if (amatch("tilepal", 7)) {
+		if (!match("("))
+			error("missing (");
+
+		ol(".data");
+
+		readstr();	/* read the label name */
+		prefix();
+		outstr(litq2);
+		outstr(":\n");
+		addglb_far(litq2, CINT);
+
+		if (!match(",")) {
+			error("missing ,");
+			kill();
+			return;
+		}
+
+		ot(".inctilepal \"");
+
+		if (readqstr() == 0) {
+			error("bad filename in inctilepal");
+			kill();
+			return;
+		}
+
+		outstr(litq2);
+		outstr("\"");
+
+		if (match(","))
+			outstr(",");
+
+		numericarg = 0;
+
+		while (!match(")")) {
+			numericarg++;
+
+			number(&dummy);
+			outdec(dummy);
+			if (match(","))
+				outstr(",");
+		}
+
+		nl();
+		ol(".code");
+
+		if ((numericarg != 0) &&
+		    (numericarg != 2) &&
+		    (numericarg != 4))
+			error("Either 0,2 or 4 numeric arguments are needed for inctilepal statement");
 
 		kill();
 	}
