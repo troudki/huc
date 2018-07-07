@@ -26,9 +26,22 @@ New in version 3.99:
 - Change HuC to use "-raw" and "-pad" options to avoid 384KB HuCard problem.
 - Add warning whenever a 384KB HuCard image is created to highlight problem.
 
-2018-05-30
+2018-07-07
 - Fix potential buffer overrun in optimize.c that GCC7 complains about.
 - Increase switch label stack size from 100 to 256.
+- Allow a zero rows and/or columns size in .incchr, .inctile, etc to
+  autosize from the image itself.
+- When using .inctile, tile #256 now wraps around onto tile #0 (with a
+  warning message), so that ProMotion tilemaps can use all 256 tiles.
+- Add .incchrpal, .incsprpal, and .inctilepal commands to PCEAS so that
+  the user can create palette lookup tables for HuC maps directly from
+  the character, sprite and tile graphics.
+- Add #incchrpal, #incsprpal, and #inctilepal commands to HuC so that
+  the user can create palette lookup tables for HuC maps directly from
+  the character, sprite and tile graphics.
+- Add new example project that shows using ProMotion to create HuC maps.
+- Update PCEAS documentation with latest features.
+
 
 New in version 3.21:
 --------------------
