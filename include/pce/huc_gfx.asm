@@ -1160,7 +1160,15 @@ _put_tile.2:
 _put_tile_8:
 	jsr	set_write
 	; -- calculate tile vram address
-	stw	mapctable,<__bx
+	tma	#2
+	pha
+	lda	mapctablebank
+	tam	#2
+	stb	mapctable,<__bx
+	lda	mapctable+1
+	and	#$1F
+	ora	#$40
+	sta	<__bx+1
 	lda	<__dl
 	tay
 	add	maptilebase
@@ -1171,11 +1179,21 @@ _put_tile_8:
 	; -- copy tile
 	stx	video_data_l
 	sta	video_data_h
+	pla
+	tam	#2
 	rts
 _put_tile_16:
 	jsr	set_write
 	; -- calculate tile vram address
-	stw	mapctable,<__bx
+	tma	#2
+	pha
+	lda	mapctablebank
+	tam	#2
+	stb	mapctable,<__bx
+	lda	mapctable+1
+	and	#$1F
+	ora	#$40
+	sta	<__bx+1
 	stz	<__dh
 	lda	<__dl
 	tay
@@ -1200,6 +1218,8 @@ _put_tile_16:
 	stw	<__dx,video_data
 	incw	<__dx
 	stw	<__dx,video_data
+	pla
+	tam	#2
 	rts
 
 ; map_get_tile(char x [__dl], char y)
