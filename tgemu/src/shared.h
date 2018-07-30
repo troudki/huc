@@ -11,10 +11,11 @@
 #include "system.h"
 #include "psg.h"
 #include "cpu/cpuintrf.h"
-#include "unzip.h"
+/* #include "unzip.h" */
 #include "fileio.h"
 #include "osd.h"
 
 #include <string.h>
+#include <stdlib.h>
 
 #endif /* _SHARED_H_ */
