@@ -17,5 +17,6 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #endif /* _SHARED_H_ */
