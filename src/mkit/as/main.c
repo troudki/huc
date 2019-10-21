@@ -77,7 +77,7 @@ main(int argc, char **argv)
 {
 	FILE *fp, *ipl;
 	char *p;
-	char cmd[80];
+	char cmd[256];
 	int i, j;
 	int file;
 	int ram_bank;
@@ -508,7 +508,7 @@ main(int argc, char **argv)
 
 			/* execute */
 			if (develo_opt) {
-				sprintf(cmd, "perun %s", out_fname);
+				snprintf(cmd, sizeof(cmd), "perun %s", out_fname);
 				system(cmd);
 			}
 		}

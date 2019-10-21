@@ -297,17 +297,16 @@ macro_getargs(int ip)
 					    (strcasecmp(ptr, "y++") == 0) ||
 					    (strlen(ptr) == 1)) {
 						arg--;
-						ptr = marg[midx][arg];
+						ptr = marg[midx][arg] + strlen(marg[midx][arg]);
 
 						/* check string length */
-						if (strlen(ptr) > 75) {
+						if ((marg[midx][arg + 1] - ptr) < 5) {
 							error("Macro argument string too long, max. 80 characters!");
 							return (0);
 						}
 
 						/* attach current arg to the previous one */
-						strcat(ptr, ",");
-						strcat(ptr, marg[midx][arg + 1]);
+						snprintf(ptr, (marg[midx][arg + 1] - ptr), ",%s", marg[midx][arg + 1]);
 						ptr = marg[midx][arg + 1];
 						ptr[0] = '\0';
 					}
