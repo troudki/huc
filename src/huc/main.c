@@ -981,25 +981,65 @@ char extension (char *s)
 
 long assemble (char *s)
 {
-	char buf[100];
+#if defined(_WIN32)
+
 	char *exe;
-	char *opts[10];
-	long i;
-
-//	long j;
-
-	i = 0;
-
+	char buf[512];
 
 	exe = getenv("PCE_PCEAS");
 	if (!exe) {
-#if defined(DJGPP) || defined(WIN32)
 		exe = "pceas.exe";
-#elif defined(linux) || defined(unix) || defined(osx)
+	}
+
+	strncpy(buf, exe, (sizeof(buf) / sizeof(buf[0])) - 1);
+	strncat(buf, " ", (sizeof(buf) / sizeof(buf[0])) - 1);
+	for (char *p = buf; (p = strchr(p, '/')) != NULL; *p++ = '\\');
+
+	switch (cdflag) {
+	case 1:
+		strncat(buf, "-cd ", (sizeof(buf) / sizeof(buf[0])) - 1);
+		break;
+
+	case 2:
+		strncat(buf, "-scd ", (sizeof(buf) / sizeof(buf[0])) - 1);
+		break;
+
+	default:
+		strncat(buf, "-raw -pad ", (sizeof(buf) / sizeof(buf[0])) - 1);
+		break;
+	}
+
+	if (overlayflag)
+		strncat(buf, "-over ", (sizeof(buf) / sizeof(buf[0])) - 1);
+
+	if (verboseflag) {
+		if (verboseflag > 1)
+			strncat(buf, "-S -l 3 -m ", (sizeof(buf) / sizeof(buf[0])) - 1);
+		else
+			strncat(buf, "-S -l 0 ", (sizeof(buf) / sizeof(buf[0])) - 1);
+	}
+	else
+		strncat(buf, "-l 0 ", (sizeof(buf) / sizeof(buf[0])) - 1);
+
+	strncat(buf, s, (sizeof(buf) / sizeof(buf[0])) - 1);
+	buf[strlen(buf) - 1] = 's';
+
+// Comment this out later...
+//	printf("invoking pceas:\n");
+//	printf("%s\n", buf);
+
+	return (system(buf));
+
+#elif defined(__unix__) || defined(__APPLE__)
+
+	char *exe;
+	char buf[100];
+	char *opts[10];
+	long i = 0;
+
+	exe = getenv("PCE_PCEAS");
+	if (!exe) {
 		exe = "pceas";
-#else
-#error Add calling sequence depending on your OS
-#endif
 	}
 	opts[i++] = exe;
 	switch (cdflag) {
@@ -1039,17 +1079,16 @@ long assemble (char *s)
 	opts[i++] = 0;
 
 // Comment this out later...
-
-//	printf("invoking pceas:\n");
-//	for (j = 0; j < i; j++) {
-//		printf("arg[%d] = %s\n", j, opts[j]);
+//	{
+//		long j;
+//		printf("invoking pceas:\n");
+//		for (j = 0; j < i; j++)
+//			printf("arg[%d] = %s\n", j, opts[j]);
 //	}
-// .....
-#if defined(WIN32)
+
 	return (execvp(exe, (char *const *)opts));
 
 #else
-	return (execvp(exe, (char *const *)opts));
-
+#error Add calling sequence depending on your OS
 #endif
 }
