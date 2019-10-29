@@ -7,7 +7,6 @@ all: shmup.pce
 
 shmup.pce: shmup.c bgm.asm
 	$(CC) -scd -fsigned-char $(CFLAGS) $(LIBS) $<
-	sleep 1
 	$(CC) -fsigned-char $(CFLAGS) $(LIBS) $<
 
 bgm.asm: ackerlight.mod

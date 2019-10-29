@@ -8,7 +8,6 @@ CFLAGS ?= -acd -sgx -fno-recursive -msmall
 
 ac_test.iso: $(SRC)
 	$(CC) $(CFLAGS) $(SRC) $(LIBS)
-	sleep 1
 	# inject pce_tile.bin at $E1000
 	dd if=pce_tile.bin of=$@ bs=`printf %d 0xe1000` seek=1
 	# inject pce_bat.bin at $E9000

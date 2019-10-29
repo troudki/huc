@@ -11,7 +11,6 @@ sgx_test.iso: $(SRC)
 	$(CC) $(CFLAGS) $(CDFLAGS) $(SRC) $(LIBS)
 sgx_test.sgx: $(SRC)
 	$(CC) $(CFLAGS) $(SRC) $(LIBS)
-	sleep 1
 	mv -f sgx_test.pce $@
 
 clean:
