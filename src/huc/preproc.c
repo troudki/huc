@@ -544,7 +544,9 @@ long cpp (int subline)
 					else {
 						haveargs = 1;
 						for (;;) {
-							args[argc][0] = 0;
+							char * parg = args[argc];
+							char * pend = args[argc] + 255;
+							parg[0] = '\0';
 							while (ch() != ',' || nest > 0) {
 								char c = gch();
 								if (c == '(')
@@ -553,7 +555,12 @@ long cpp (int subline)
 									error("missing closing paren");
 									return (0);
 								}
-								strncat(args[argc], &c, 1);
+								parg[0] = c;
+								parg[1] = '\0';
+								if (++parg >= pend) {
+									error("macro argument too long");
+									return (0);
+								}
 								if (ch() == ')') {
 									if (nest)
 										nest--;
