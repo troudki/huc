@@ -85,7 +85,7 @@ void
 error(char *string, long pos)
 {
    printf("\n");
-   printf(string);
+   printf("%s", string);
    if (pos >= 0)
    {
       printf("\n");
