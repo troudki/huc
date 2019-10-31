@@ -12,6 +12,7 @@
  *
  */
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1033,7 +1034,7 @@ intptr_t assemble (char *s)
 #elif defined(__unix__) || defined(__APPLE__)
 
 	char *exe;
-	char buf[100];
+	char buf[256];
 	char *opts[10];
 	intptr_t i = 0;
 
@@ -1072,7 +1073,7 @@ intptr_t assemble (char *s)
 	else
 		opts[i++] = "-l 0";
 
-	strcpy_s(buf, sizeof(buf), s);
+	strcpy(buf, s);
 	buf[strlen(buf) - 1] = 's';
 	opts[i++] = buf;
 

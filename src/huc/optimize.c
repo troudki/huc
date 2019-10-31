@@ -11,6 +11,7 @@
 #define ODEBUG(x ...)
 #endif
 
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

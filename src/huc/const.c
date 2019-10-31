@@ -8,6 +8,7 @@
    like pointer arithmetic, and probably many non-trivial expressions.
    Needs a rewrite. */
 
+#include <stdint.h>
 #include <stdio.h>
 #include "defs.h"
 #include "data.h"

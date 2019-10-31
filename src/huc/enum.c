@@ -2,6 +2,7 @@
    All rights reserved.
    See LICENSE for details on use and redistribution. */
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include "data.h"
