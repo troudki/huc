@@ -17,9 +17,6 @@ LDFLAGS = -g
 #
 # platform-specific stuff
 #
-ifeq "$(shell uname -s)" "Darwin"
-CFLAGS += -Dosx
-endif
 ifeq "$(shell uname -o)" "Cygwin"
 CFLAGS += -Wno-char-subscripts
 endif

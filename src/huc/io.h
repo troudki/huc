@@ -18,7 +18,7 @@ intptr_t openout (void);
 void outfname (char *s);
 void fixname (char *s);
 intptr_t checkname (char *s);
-#if defined(osx) || defined(__CYGWIN__)
+#if defined(__APPLE__) || defined(__CYGWIN__)
 void _kill (void);
 #define kill _kill
 #else
