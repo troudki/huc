@@ -2,7 +2,7 @@
 #define PCE_ASM_VERSION ("PC Engine Assembler (v 3.23-" GIT_VERSION ", " GIT_DATE ")")
 
 /* path separator */
-#if defined(DJGPP) || defined(MSDOS) || defined(WIN32)
+#if defined(WIN32)
 #define PATH_SEPARATOR		'\\'
 #define PATH_SEPARATOR_STRING	"\\"
 #else

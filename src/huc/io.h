@@ -6,7 +6,7 @@
 #ifndef _IO_H
 #define _IO_H
 
-#if defined(DJGPP) || defined(MSDOS) || defined(WIN32)
+#if defined(WIN32)
 #define CR_LEN  2
 #else
 #define CR_LEN  1

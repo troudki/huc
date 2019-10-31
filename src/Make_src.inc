@@ -24,8 +24,6 @@ ifeq "$(shell uname -o)" "Cygwin"
 CFLAGS += -Wno-char-subscripts
 endif
 
-ifeq "$(origin DJGPP)" "undefined"
-
 # BASEDIR uses 'd' for path separator; we fix that here
 #
 ROOTDIR=$(subst d ,/,$(BASEDIR))
@@ -34,17 +32,3 @@ MAKETARG=$(ROOTDIR)/src/Maketarg.inc
 EXESUFFIX = 
 CP = cp
 RM = rm -f
-
-else
-
-# BASEDIR uses 'd' for path separator; we fix that here
-#
-ROOTDIR=$(subst d ,\,$(BASEDIR))
-BINDIR=$(ROOTDIR)\bin
-MAKETARG=$(ROOTDIR)\src\Maketarg.inc
-EXESUFFIX = .exe
-CP = copy
-RM = del
-
-endif
-
