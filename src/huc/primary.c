@@ -148,12 +148,12 @@ invalid_cast:
 	return (0);
 }
 
-long primary (LVALUE *lval, int comma)
+intptr_t primary (LVALUE *lval, int comma)
 {
 	SYMBOL *ptr;
 	char sname[NAMESIZE];
-	long num[1];
-	long k;
+	intptr_t num[1];
+	intptr_t k;
 
 	lval->ptr_type = 0;	/* clear pointer/array type */
 	lval->ptr_order = 0;
@@ -320,7 +320,7 @@ long primary (LVALUE *lval, int comma)
 					return (1);
 				}
 				if (!ptr->far)
-					immed(T_SYMBOL, (long)ptr);
+					immed(T_SYMBOL, (intptr_t)ptr);
 				else {
 					/* special variables */
 					blanks();
@@ -333,7 +333,7 @@ long primary (LVALUE *lval, int comma)
 								error("can't access vram this way");
 						}
 						/* others */
-						immed(T_SYMBOL, (long)ptr);
+						immed(T_SYMBOL, (intptr_t)ptr);
 //						error ("can't access far array");
 					}
 				}
@@ -351,7 +351,7 @@ long primary (LVALUE *lval, int comma)
 			if (ptr && (ptr->ident == FUNCTION)) {
 				lval->symbol = ptr;
 				lval->indirect = 0;
-				immed(T_SYMBOL, (long)ptr->name);
+				immed(T_SYMBOL, (intptr_t)ptr->name);
 				return (0);
 			}
 			error("undeclared variable");
@@ -385,7 +385,7 @@ long primary (LVALUE *lval, int comma)
 /*
  *	true if val1 -> int pointer or int array and val2 not pointer or array
  */
-long dbltest (LVALUE val1[], LVALUE val2[])
+intptr_t dbltest (LVALUE val1[], LVALUE val2[])
 {
 	if (val1 == NULL || !val1->ptr_type)
 		return (FALSE);
@@ -416,7 +416,7 @@ void result (LVALUE lval[], LVALUE lval2[])
 	}
 }
 
-long constant (long val[])
+intptr_t constant (intptr_t val[])
 {
 	if (number(val))
 		immed(T_VALUE, val[0]);
@@ -432,9 +432,9 @@ long constant (long val[])
 	return (1);
 }
 
-long number (long val[])
+intptr_t number (intptr_t val[])
 {
-	long k, minus, base;
+	intptr_t k, minus, base;
 	char c;
 
 	k = minus = 1;
@@ -471,7 +471,7 @@ long number (long val[])
 	return (1);
 }
 
-static int parse0 (long *num)
+static int parse0 (intptr_t *num)
 {
 	if (!const_expr(num, ")", NULL))
 		return (0);
@@ -481,9 +481,9 @@ static int parse0 (long *num)
 	return (1);
 }
 
-static int parse3 (long *num)
+static int parse3 (intptr_t *num)
 {
-	long num2;
+	intptr_t num2;
 	struct type t;
 	char op;
 	char n[NAMESIZE];
@@ -554,9 +554,9 @@ static int parse3 (long *num)
 	return (1);
 }
 
-static int parse5 (long *num)
+static int parse5 (intptr_t *num)
 {
-	long num1, num2;
+	intptr_t num1, num2;
 
 	if (!parse3(&num1))
 		return (0);
@@ -582,9 +582,9 @@ static int parse5 (long *num)
 	}
 }
 
-static int parse6 (long *num)
+static int parse6 (intptr_t *num)
 {
-	long num1, num2;
+	intptr_t num1, num2;
 
 	if (!parse5(&num1))
 		return (0);
@@ -610,9 +610,9 @@ static int parse6 (long *num)
 	}
 }
 
-static int parse7 (long *num)
+static int parse7 (intptr_t *num)
 {
-	long num1, num2;
+	intptr_t num1, num2;
 
 	if (!parse6(&num1))
 		return (0);
@@ -638,9 +638,9 @@ static int parse7 (long *num)
 	}
 }
 
-static int parse9 (long *num)
+static int parse9 (intptr_t *num)
 {
-	long num1, num2;
+	intptr_t num1, num2;
 
 	if (!parse7(&num1))
 		return (0);
@@ -666,7 +666,7 @@ static int parse9 (long *num)
 	}
 }
 
-int const_expr (long *num, char *end1, char *end2)
+int const_expr (intptr_t *num, char *end1, char *end2)
 {
 	if (!parse9(num)) {
 		error("failed to evaluate constant expression");
@@ -685,9 +685,9 @@ int const_expr (long *num, char *end1, char *end2)
  * pstr parses a character than can eventually be 'double' i.e. like 'a9'
  * returns 0 in case of failure else 1
  */
-long pstr (long val[])
+intptr_t pstr (intptr_t val[])
 {
-	long k;
+	intptr_t k;
 	char c;
 
 	k = 0;
@@ -707,7 +707,7 @@ long pstr (long val[])
  * qstr parses a double quoted string into litq
  * return 0 in case of failure and 1 else
  */
-long qstr (long val[])
+intptr_t qstr (intptr_t val[])
 {
 	char c;
 
@@ -733,7 +733,7 @@ long qstr (long val[])
 	return (1);
 }
 
-long const_str (long *val, const char *str)
+intptr_t const_str (intptr_t *val, const char *str)
 {
 	if (litptr + strlen(str) + 1 >= LITMAX) {
 		error("string space exhausted");
@@ -752,10 +752,10 @@ long const_str (long *val, const char *str)
  * Zeograd: this function don't dump the result of the reading in the literal
  * pool, it is rather intended for use in pseudo code
  */
-long readqstr (void)
+intptr_t readqstr (void)
 {
 	char c;
-	long posptr = 0;
+	intptr_t posptr = 0;
 
 	if (!match(quote))
 		return (0);
@@ -786,10 +786,10 @@ long readqstr (void)
  * Zeograd: this function don't dump the result of the reading in the literal
  * pool, it is rather intended for use in pseudo code
  */
-long readstr (void)
+intptr_t readstr (void)
 {
 	char c;
-	long posptr = 0;
+	intptr_t posptr = 0;
 
 	while (an(ch()) || (ch() == '_')) {
 		if (ch() == 0)
@@ -809,7 +809,7 @@ long readstr (void)
 /*
  *	decode special characters (preceeded by back slashes)
  */
-long spechar (void)
+intptr_t spechar (void)
 {
 	char c;
 

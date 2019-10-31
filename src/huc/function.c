@@ -26,21 +26,21 @@
 
 /* locals */
 static INS ins_stack[1024];
-static long ins_stack_idx;
+static intptr_t ins_stack_idx;
 /* static char ins_stack_fname[NAMESIZE]; */
-static long arg_list[32][2];
-/* static long  arg_list_idx; */
-static long arg_idx;
-static long func_call_stack;
+static intptr_t arg_list[32][2];
+/* static intptr_t  arg_list_idx; */
+static intptr_t arg_idx;
+static intptr_t func_call_stack;
 
 /* globals */
-long arg_stack_flag;
-long argtop;
+intptr_t arg_stack_flag;
+intptr_t argtop;
 
 /* protos */
-void arg_flush (long arg, long adj);
-void arg_to_fptr (struct fastcall *fast, long i, long arg, long adj);
-void arg_to_dword (struct fastcall *fast, long i, long arg, long adj);
+void arg_flush (intptr_t arg, intptr_t adj);
+void arg_to_fptr (struct fastcall *fast, intptr_t i, intptr_t arg, intptr_t adj);
+void arg_to_dword (struct fastcall *fast, intptr_t i, intptr_t arg, intptr_t adj);
 
 /* function declaration styles */
 #define KR 0
@@ -64,12 +64,12 @@ void newfunc (const char *sname, int ret_ptr_order, int ret_type, int ret_otag, 
 {
 	char n[NAMESIZE];
 	SYMBOL *ptr;
-	long nbarg = 0;
+	intptr_t nbarg = 0;
 	int is_irq_handler = 0;
 	int is_firq_handler = 0;
 	int save_norecurse = norecurse;
 	struct fastcall *fc;
-	long hash;
+	intptr_t hash;
 	int fc_args;
 
 	need_map_call_bank = 0;
@@ -443,9 +443,9 @@ void newfunc (const char *sname, int ret_ptr_order, int ret_type, int ret_otag, 
  *	completely rewritten version.  p.l. woods
  *
  */
-int getarg (long t, int syntax, int otag, int is_fastcall)
+int getarg (intptr_t t, int syntax, int otag, int is_fastcall)
 {
-	long j, legalname, address;
+	intptr_t j, legalname, address;
 	char n[NAMESIZE];
 	SYMBOL *argptr;
 	int ptr_order = 0;
@@ -474,7 +474,7 @@ int getarg (long t, int syntax, int otag, int is_fastcall)
 
 		if (!(legalname = symname(n))) {
 			if (syntax == ANSI && (ch() == ',' || ch() == ')'))
-				sprintf(n, "__anon_%ld\n", -argstk);
+				sprintf(n, "__anon_%ld\n", (long) -argstk);
 			else {
 				illname();
 				junk();
@@ -555,14 +555,14 @@ int getarg (long t, int syntax, int otag, int is_fastcall)
 
 void callfunction (char *ptr)
 {
-	extern char *new_string (long, char *);
+	extern char *new_string (intptr_t, char *);
 	struct fastcall *fast;
-	long call_stack_ref;
-	long i, j;
-	long nb;
-	long adj;
-	long nargs;
-	long cnt;
+	intptr_t call_stack_ref;
+	intptr_t i, j;
+	intptr_t nb;
+	intptr_t adj;
+	intptr_t nargs;
+	intptr_t cnt;
 	int max_fc_arg = 0;	/* highest arg with a fastcall inside */
 	/* args spilled to the native stack */
 	const char *spilled_args[MAX_FASTCALL_ARGS];
@@ -693,20 +693,20 @@ void callfunction (char *ptr)
 					if (i < max_fc_arg)
 						SPILLB(fast->argname[j])
 						else
-							out_ins(I_STB, T_LITERAL, (long)fast->argname[j]);
+							out_ins(I_STB, T_LITERAL, (intptr_t)fast->argname[j]);
 					break;
 				case TYPE_WORD:
 					if (i < max_fc_arg)
 						SPILLW(fast->argname[j])
 						else
-							out_ins(I_STW, T_LITERAL, (long)fast->argname[j]);
+							out_ins(I_STW, T_LITERAL, (intptr_t)fast->argname[j]);
 					break;
 				case TYPE_FARPTR:
 					arg_to_fptr(fast, j, arg_idx + i, adj);
 					if (i < max_fc_arg) {
-						out_ins(I_LDUB, T_LITERAL, (long)fast->argname[j]);
+						out_ins(I_LDUB, T_LITERAL, (intptr_t)fast->argname[j]);
 						SPILLB(fast->argname[j])
-						out_ins(I_LDW, T_LITERAL, (long)fast->argname[j + 1]);
+						out_ins(I_LDW, T_LITERAL, (intptr_t)fast->argname[j + 1]);
 						SPILLW(fast->argname[j + 1])
 					}
 					j += 1;
@@ -714,11 +714,11 @@ void callfunction (char *ptr)
 				case TYPE_DWORD:
 					arg_to_dword(fast, j, arg_idx + i, adj);
 					if (i < max_fc_arg) {
-						out_ins(I_LDW, T_LITERAL, (long)fast->argname[j]);
+						out_ins(I_LDW, T_LITERAL, (intptr_t)fast->argname[j]);
 						SPILLW(fast->argname[j])
-						out_ins(I_LDW, T_LITERAL, (long)fast->argname[j + 1]);
+						out_ins(I_LDW, T_LITERAL, (intptr_t)fast->argname[j + 1]);
 						SPILLW(fast->argname[j + 1])
-						out_ins(I_LDW, T_LITERAL, (long)fast->argname[j + 2]);
+						out_ins(I_LDW, T_LITERAL, (intptr_t)fast->argname[j + 2]);
 						SPILLW(fast->argname[j + 2])
 					}
 					j += 2;
@@ -762,22 +762,22 @@ void callfunction (char *ptr)
 		/* Reloading corrupts acc, so we need to save it if it
 		   is used by the callee. */
 		if (uses_acc)
-			out_ins(I_STW, T_LITERAL, (long)"<__temp");
+			out_ins(I_STW, T_LITERAL, (intptr_t)"<__temp");
 
 		for (i = sparg_idx - 1; i > -1; i--) {
 			if (spilled_arg_sizes[i] == 1) {
 				out_ins(I_RESB, 0, 0);
-				out_ins(I_STB, T_LITERAL, (long)spilled_args[i]);
+				out_ins(I_STB, T_LITERAL, (intptr_t)spilled_args[i]);
 			}
 			else {
 				out_ins(I_RESW, 0, 0);
 				if (spilled_args[i])
-					out_ins(I_STW, T_LITERAL, (long)spilled_args[i]);
+					out_ins(I_STW, T_LITERAL, (intptr_t)spilled_args[i]);
 			}
 		}
 
 		if (uses_acc)
-			out_ins(I_LDW, T_LITERAL, (long)"<__temp");
+			out_ins(I_LDW, T_LITERAL, (intptr_t)"<__temp");
 	}
 
 	if (ptr == NULL)
@@ -805,7 +805,7 @@ l1:
  * start arg instruction stacking
  *
  */
-void arg_stack (long arg)
+void arg_stack (intptr_t arg)
 {
 	if (arg > 31)
 		error("too many args");
@@ -842,12 +842,12 @@ void arg_push_ins (INS *ptr)
  * flush arg instruction stacks
  *
  */
-void arg_flush (long arg, long adj)
+void arg_flush (intptr_t arg, intptr_t adj)
 {
 	INS *ins;
-	long idx;
-	long nb;
-	long i;
+	intptr_t idx;
+	intptr_t nb;
+	intptr_t i;
 
 	if (arg > 31)
 		return;
@@ -894,13 +894,13 @@ void arg_flush (long arg, long adj)
 	}
 }
 
-void arg_to_fptr (struct fastcall *fast, long i, long arg, long adj)
+void arg_to_fptr (struct fastcall *fast, intptr_t i, intptr_t arg, intptr_t adj)
 {
 	INS *ins, tmp;
 	SYMBOL *sym;
-	long idx;
-	long err;
-	long nb;
+	intptr_t idx;
+	intptr_t err;
+	intptr_t nb;
 
 	if (arg > 31)
 		return;
@@ -990,8 +990,8 @@ void arg_to_fptr (struct fastcall *fast, long i, long arg, long adj)
 			     (sym->ident == POINTER)) &&
 			    (sym->type == CINT || sym->type == CUINT)) {
 				tmp.code = I_FARPTR_GET;
-				tmp.type = (long)NULL;
-				tmp.data = (long)NULL;
+				tmp.type = (intptr_t)NULL;
+				tmp.data = (intptr_t)NULL;
 				tmp.arg[0] = fast->argname[i];
 				tmp.arg[1] = fast->argname[i + 1];
 			}
@@ -1005,14 +1005,14 @@ void arg_to_fptr (struct fastcall *fast, long i, long arg, long adj)
 	}
 }
 
-void arg_to_dword (struct fastcall *fast, long i, long arg, long adj)
+void arg_to_dword (struct fastcall *fast, intptr_t i, intptr_t arg, intptr_t adj)
 {
 	INS *ins, *ptr, tmp;
 	SYMBOL *sym;
-	long idx;
-	long gen;
-	long err;
-	long nb;
+	intptr_t idx;
+	intptr_t gen;
+	intptr_t err;
+	intptr_t nb;
 
 	if (arg > 31)
 		return;
@@ -1055,7 +1055,7 @@ void arg_to_dword (struct fastcall *fast, long i, long arg, long adj)
 					ins->code = X_LDD_B;
 
 				ins->type = T_SYMBOL;
-				ins->data = (long)sym;
+				ins->data = (intptr_t)sym;
 				ins->arg[0] = fast->argname[i + 1];
 				ins->arg[1] = fast->argname[i + 2];
 				gen = 1;
@@ -1132,7 +1132,7 @@ void arg_to_dword (struct fastcall *fast, long i, long arg, long adj)
 		if (strcmp(fast->argname[i], "#acc") != 0) {
 			tmp.code = I_STW;
 			tmp.type = T_SYMBOL;
-			tmp.data = (long)fast->argname[i];
+			tmp.data = (intptr_t)fast->argname[i];
 			gen_ins(&tmp);
 		}
 	}

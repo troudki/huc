@@ -30,7 +30,7 @@ int define_enum (char *sname, int storage)
 		strcpy(enums[enum_ptr].name, n);
 		/* optional initializer */
 		if (match("=")) {
-			long num;
+			intptr_t num;
 			if (const_expr(&num, ",", "}"))
 				count = num;
 		}
@@ -92,7 +92,7 @@ int find_enum_type (char *name)
 	return (-1);
 }
 
-int find_enum (char *sname, long *val)
+int find_enum (char *sname, intptr_t *val)
 {
 	int i;
 

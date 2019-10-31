@@ -19,11 +19,11 @@
 
 /* local array to store internal strings */
 static char str_buf[0x10000];
-static long str_idx;
+static intptr_t str_idx;
 
 /* protos */
-char *new_string (long und, char *a);
-void  do_inc_ex (long type);
+char *new_string (intptr_t und, char *a);
+void  do_inc_ex (intptr_t type);
 
 /*
  * This source file includes all kind of stuff used to 'simulate' pseudo code
@@ -31,8 +31,8 @@ void  do_inc_ex (long type);
  */
 void dopsdinc (void)
 {
-	long dummy;		/* Used in the qstr function, I don't know its utility yet */
-	long numericarg = 0;	/* Number of numeric arg to test validity */
+	intptr_t dummy;		/* Used in the qstr function, I don't know its utility yet */
+	intptr_t numericarg = 0;	/* Number of numeric arg to test validity */
 
 	if (amatch("pal", 3)) {
 		if (!match("("))
@@ -557,10 +557,10 @@ void dopsdinc (void)
 
 void dopsddef (void)
 {
-	long numericarg = 0;
-	long dummy;
-	long dummy_array[16];
-	long i;
+	intptr_t numericarg = 0;
+	intptr_t dummy;
+	intptr_t dummy_array[16];
+	intptr_t i;
 
 	if (amatch("pal", 3)) {
 		if (!match("("))
@@ -738,7 +738,7 @@ void dopsddef (void)
 }
 
 
-long outcomma (void)
+intptr_t outcomma (void)
 {
 	if (!match(",")) {
 		error("missing ,");
@@ -751,7 +751,7 @@ long outcomma (void)
 	return (0);
 }
 
-long outnameunderline (void)
+intptr_t outnameunderline (void)
 {
 	char n[NAMESIZE];
 
@@ -767,9 +767,9 @@ long outnameunderline (void)
 	return (0);
 }
 
-long outconst (void)
+intptr_t outconst (void)
 {
-	long dummy;
+	intptr_t dummy;
 
 	number(&dummy);
 	outbyte('#');
@@ -902,7 +902,7 @@ void doload_backgroundstatement (void)
 	needbrack(")");
 }
 
-void do_asm_func (long type)
+void do_asm_func (intptr_t type)
 {
 	/* syntax is
 	   name of the data : identifier
@@ -925,15 +925,15 @@ void do_asm_func (long type)
 
 	/* gen code */
 	if (ptr)
-		out_ins(I_LDWI, type, (long)ptr);
+		out_ins(I_LDWI, type, (intptr_t)ptr);
 	else
 		error("out of memory");
 }
 
-char *new_string (long und, char *a)
+char *new_string (intptr_t und, char *a)
 {
-	long len;
-	long tmp;
+	intptr_t len;
+	intptr_t tmp;
 
 	if (a == NULL)
 		return (NULL);
@@ -951,12 +951,12 @@ char *new_string (long und, char *a)
 	return (&str_buf[tmp]);
 }
 
-void do_inc_ex (long type)
+void do_inc_ex (intptr_t type)
 {
-	long end;
-	long i;
-	long j;
-	long num;
+	intptr_t end;
+	intptr_t i;
+	intptr_t j;
+	intptr_t num;
 	int nb_tile;
 	char label[NAMESIZE];
 	char label2[NAMESIZE];
@@ -964,7 +964,7 @@ void do_inc_ex (long type)
 
 	struct {
 		char fname[FILENAMESIZE];
-		long arg[5];
+		intptr_t arg[5];
 	} tiles[16];
 
 	if (!match("(")) {

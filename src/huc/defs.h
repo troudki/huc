@@ -334,11 +334,11 @@ struct macro {
 /* pseudo instruction structure */
 
 typedef struct {
-	long code;
-	long type;
-	long data;
-	long imm_type;
-	long imm_data;
+	intptr_t code;
+	intptr_t type;
+	intptr_t data;
+	intptr_t imm_type;
+	intptr_t imm_data;
 	char *arg[3];
 	SYMBOL *sym;
 } INS;
@@ -351,9 +351,9 @@ typedef struct {
 
 struct const_array {
 	SYMBOL *sym;
-	long typ;
-	long size;
-	long data;
+	intptr_t typ;
+	intptr_t size;
+	intptr_t data;
 };
 
 /* fastcall func struct */
@@ -363,8 +363,8 @@ struct const_array {
 struct fastcall {
 	struct fastcall *next;
 	char fname[NAMESIZE];
-	long nargs;
-	long flags;
+	intptr_t nargs;
+	intptr_t flags;
 	char argtype[MAX_FASTCALL_ARGS];
 	char argname[MAX_FASTCALL_ARGS][NAMESIZE];
 };
@@ -386,10 +386,10 @@ SYMBOL *find_member (TAG_SYMBOL *tag, char *sname);
 
 struct lvalue {
 	SYMBOL *symbol;
-	long indirect;
-	long ptr_type;
+	intptr_t indirect;
+	intptr_t ptr_type;
 	SYMBOL *symbol2;
-	long value;
+	intptr_t value;
 	TAG_SYMBOL *tagsym;
 	int ptr_order;
 	int type;

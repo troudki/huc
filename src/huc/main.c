@@ -66,7 +66,7 @@ int main (int argc, char *argv[])
 	char *p, *pp, *bp;
 	char **oldargv = argv;
 	char **link_lib;
-	long smacptr;
+	intptr_t smacptr;
 	int first = 1;
 	char *asmdefs_global_end;
 
@@ -491,9 +491,9 @@ void parse (void)
 /*
  *		parse top level declarations
  */
-long dodcls (long stclass, TAG_SYMBOL *mtag, int is_struct)
+intptr_t dodcls (intptr_t stclass, TAG_SYMBOL *mtag, int is_struct)
 {
-	long err;
+	intptr_t err;
 	struct type t;
 
 	blanks();
@@ -559,7 +559,7 @@ void dotypedef (void)
  */
 void dumplits (void)
 {
-	long j, k;
+	intptr_t j, k;
 
 	if ((litptr == 0) && (const_nb == 0))
 		return;
@@ -682,14 +682,14 @@ char outbyteBuffer (char c)
  *	buffered print decimal number
  *
  */
-void outdecBuffer (long number)
+void outdecBuffer (intptr_t number)
 {
 	if (current_offset >=	DATABUFSIZE) {
 		printf("HuC compiler overrun detected, DATABUFSIZE is too small!\n");
 		exit(-1);
 	}
 
-	current_offset += sprintf(current_buffer + current_offset, "%ld", number);
+	current_offset += sprintf(current_buffer + current_offset, "%ld", (long) number);
 }
 
 /*
@@ -770,7 +770,7 @@ int dump_structBuffer (SYMBOL *symbol, int position)
  */
 void dumpglbs (void)
 {
-	long i = 1;
+	intptr_t i = 1;
 	int dim, list_size, line_count;
 	int j;
 	FILE *save = output;
@@ -979,7 +979,7 @@ char extension (char *s)
 	return (' ');
 }
 
-long assemble (char *s)
+intptr_t assemble (char *s)
 {
 #if defined(_WIN32)
 
@@ -1035,7 +1035,7 @@ long assemble (char *s)
 	char *exe;
 	char buf[100];
 	char *opts[10];
-	long i = 0;
+	intptr_t i = 0;
 
 	exe = getenv("PCE_PCEAS");
 	if (!exe) {
@@ -1080,7 +1080,7 @@ long assemble (char *s)
 
 // Comment this out later...
 //	{
-//		long j;
+//		intptr_t j;
 //		printf("invoking pceas:\n");
 //		for (j = 0; j < i; j++)
 //			printf("arg[%d] = %s\n", j, opts[j]);

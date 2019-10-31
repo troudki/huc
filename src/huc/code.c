@@ -17,10 +17,10 @@
 #include "optimize.h"
 
 /* locals */
-long segment;
+intptr_t segment;
 
 /* externs */
-extern long arg_stack_flag;
+extern intptr_t arg_stack_flag;
 
 /*
  *	print all assembler info before any code is generated
@@ -114,7 +114,7 @@ void defword (void)
  *	output instructions
  *
  */
-void out_ins (long code, long type, long data)
+void out_ins (intptr_t code, intptr_t type, intptr_t data)
 {
 	INS tmp;
 
@@ -126,7 +126,7 @@ void out_ins (long code, long type, long data)
 	gen_ins(&tmp);
 }
 
-void out_ins_ex (long code, long type, long data, long imm_type, long imm_data)
+void out_ins_ex (intptr_t code, intptr_t type, intptr_t data, intptr_t imm_type, intptr_t imm_data)
 {
 	INS tmp;
 
@@ -140,7 +140,7 @@ void out_ins_ex (long code, long type, long data, long imm_type, long imm_data)
 	gen_ins(&tmp);
 }
 
-void out_ins_sym (long code, long type, long data, SYMBOL *sym)
+void out_ins_sym (intptr_t code, intptr_t type, intptr_t data, SYMBOL *sym)
 {
 	INS tmp;
 
@@ -165,7 +165,7 @@ void gen_ins (INS *tmp)
 	}
 }
 
-static void out_type (long type, long data)
+static void out_type (intptr_t type, intptr_t data)
 {
 	switch (type) {
 	case T_VALUE:
@@ -203,7 +203,7 @@ static void out_type (long type, long data)
 	}
 }
 
-static void out_addr (long type, long data)
+static void out_addr (intptr_t type, intptr_t data)
 {
 	switch (type) {
 	case T_LABEL:
@@ -242,11 +242,11 @@ void dump_ins (INS *tmp)
  */
 void gen_code (INS *tmp)
 {
-	long code;
-	long type;
-	long data;
-	long imm_type;
-	long imm_data;
+	intptr_t code;
+	intptr_t type;
+	intptr_t data;
+	intptr_t imm_type;
+	intptr_t imm_data;
 
 	code = tmp->code;
 	type = tmp->type;

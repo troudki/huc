@@ -45,7 +45,7 @@ void warning (int type, char *text)
 
 void doerror (char *ptr, int type)
 {
-	long k;
+	intptr_t k;
 
 	comment();
 	if (!type)
