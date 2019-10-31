@@ -991,37 +991,37 @@ intptr_t assemble (char *s)
 		exe = "pceas.exe";
 	}
 
-	strncpy(buf, exe, (sizeof(buf) / sizeof(buf[0])) - 1);
-	strncat(buf, " ", (sizeof(buf) / sizeof(buf[0])) - 1);
+	strcpy_s(buf, sizeof(buf), exe);
+	strcat_s(buf, sizeof(buf), " ");
 	for (char *p = buf; (p = strchr(p, '/')) != NULL; *p++ = '\\');
 
 	switch (cdflag) {
 	case 1:
-		strncat(buf, "-cd ", (sizeof(buf) / sizeof(buf[0])) - 1);
+		strcat_s(buf, sizeof(buf), "-cd ");
 		break;
 
 	case 2:
-		strncat(buf, "-scd ", (sizeof(buf) / sizeof(buf[0])) - 1);
+		strcat_s(buf, sizeof(buf), "-scd ");
 		break;
 
 	default:
-		strncat(buf, "-raw -pad ", (sizeof(buf) / sizeof(buf[0])) - 1);
+		strcat_s(buf, sizeof(buf), "-raw -pad ");
 		break;
 	}
 
 	if (overlayflag)
-		strncat(buf, "-over ", (sizeof(buf) / sizeof(buf[0])) - 1);
+		strcat_s(buf, sizeof(buf), "-over ");
 
 	if (verboseflag) {
 		if (verboseflag > 1)
-			strncat(buf, "-S -l 3 -m ", (sizeof(buf) / sizeof(buf[0])) - 1);
+			strcat_s(buf, sizeof(buf), "-S -l 3 -m ");
 		else
-			strncat(buf, "-S -l 0 ", (sizeof(buf) / sizeof(buf[0])) - 1);
+			strcat_s(buf, sizeof(buf), "-S -l 0 ");
 	}
 	else
-		strncat(buf, "-l 0 ", (sizeof(buf) / sizeof(buf[0])) - 1);
+		strcat_s(buf, sizeof(buf), "-l 0 ");
 
-	strncat(buf, s, (sizeof(buf) / sizeof(buf[0])) - 1);
+	strcat_s(buf, sizeof(buf), s);
 	buf[strlen(buf) - 1] = 's';
 
 // Comment this out later...
@@ -1072,7 +1072,7 @@ intptr_t assemble (char *s)
 	else
 		opts[i++] = "-l 0";
 
-	strcpy(buf, s);
+	strcpy_s(buf, sizeof(buf), s);
 	buf[strlen(buf) - 1] = 's';
 	opts[i++] = buf;
 
