@@ -781,6 +781,10 @@ lib2_bm_unlock:
 	lda	#$F7
 	tam	#4
 	csl
+	lda	#$48
+	sta	bram_unlock
+	lda	#$75
+	sta	bram_unlock
 	lda	#$80
 	sta	bram_unlock
 	rts
