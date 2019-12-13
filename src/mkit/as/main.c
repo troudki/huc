@@ -269,11 +269,13 @@ main(int argc, char **argv)
 	}
 
 	/* fill the instruction hash table */
-	addinst(base_inst);
+
 	addinst(base_pseudo);
 
 	/* add machine specific instructions and pseudos */
-	addinst(machine->inst);
+	addinst(machine->base_inst);
+	if (machine->plus_inst)
+		addinst(machine->plus_inst);
 	addinst(machine->pseudo_inst);
 
 	/* predefined symbols */

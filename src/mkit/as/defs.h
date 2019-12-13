@@ -1,5 +1,5 @@
-#define NES_ASM_VERSION ("NES Assembler (v 3.23-" GIT_VERSION " Beta, " GIT_DATE ")")
-#define PCE_ASM_VERSION ("PC Engine Assembler (v 3.23-" GIT_VERSION ", " GIT_DATE ")")
+#define NES_ASM_VERSION ("NES Assembler (v 3.24-" GIT_VERSION " Beta, " GIT_DATE ")")
+#define PCE_ASM_VERSION ("PC Engine Assembler (v 3.24-" GIT_VERSION ", " GIT_DATE ")")
 
 /* path separator */
 #if defined(WIN32)
@@ -230,7 +230,8 @@ typedef struct t_machine {
 	unsigned int ram_base;
 	unsigned int ram_page;
 	unsigned int ram_bank;
-	struct t_opcode *inst;
+	struct t_opcode *base_inst;
+	struct t_opcode *plus_inst;
 	struct t_opcode *pseudo_inst;
 	int (*pack_8x8_tile)(unsigned char *, void *, int, int);
 	int (*pack_16x16_tile)(unsigned char *, void *, int, int);
