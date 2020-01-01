@@ -56,6 +56,7 @@ extern struct t_input_info input_file[8];
 extern struct t_machine *machine;
 extern struct t_machine nes;
 extern struct t_machine pce;
+extern struct t_machine fuji;
 extern struct t_opcode *inst_tbl[256];		/* instructions hash table */
 extern struct t_symbol *hash_tbl[256];		/* label hash table */
 extern struct t_symbol *lablptr;		/* label pointer into symbol table */

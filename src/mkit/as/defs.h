@@ -1,5 +1,6 @@
 #define NES_ASM_VERSION ("NES Assembler (v 3.24-" GIT_VERSION " Beta, " GIT_DATE ")")
 #define PCE_ASM_VERSION ("PC Engine Assembler (v 3.24-" GIT_VERSION ", " GIT_DATE ")")
+#define FUJI_ASM_VERSION ("Fuji Assembler for Atari (v 3.24-" GIT_VERSION " Beta, " GIT_DATE ")")
 
 /* path separator */
 #if defined(WIN32)
@@ -13,6 +14,7 @@
 /* machine */
 #define MACHINE_PCE	0
 #define MACHINE_NES	1
+#define MACHINE_FUJI	2
 
 /* reserved bank index */
 #define RESERVED_BANK	0xF0
@@ -105,6 +107,7 @@
 #define P_INCCHRPAL	52	// .incchrpal
 #define P_INCSPRPAL	53	// .incsprpal
 #define P_INCTILEPAL	54	// .inctilepal
+#define P_CARTRIDGE	55	// .cartridge
 
 /* symbol flags */
 #define MDEF	3	/* multiply defined */

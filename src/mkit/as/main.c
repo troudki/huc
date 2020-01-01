@@ -2,7 +2,8 @@
  *  MagicKit assembler
  *  ----
  *  This program was originaly a 6502 assembler written by J. H. Van Ornum,
- *  it has been modified and enhanced to support the PC Engine and NES consoles.
+ *  it has been modified and enhanced to support the PC Engine and NES consoles
+ *  and the Atari 8-bit home computers.
  *
  *  This program is freeware. You are free to distribute, use and modifiy it
  *  as you wish.
@@ -18,6 +19,9 @@
  *
  *  NES version by:
  *    Charles Doty
+ *
+ *  ATARI version by:
+ *    John Brandwood
  */
 
 #include <stdio.h>
@@ -100,7 +104,10 @@ main(int argc, char **argv)
 	if (!strncasecmp(prg_name, "PCE", 3))
 		machine = &pce;
 	else
+	if (!strncasecmp(prg_name, "NES", 3))
 		machine = &nes;
+	else
+		machine = &fuji;
 
 	/* init assembler options */
 	list_level = 2;
