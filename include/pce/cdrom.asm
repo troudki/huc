@@ -333,8 +333,10 @@ cd_overlay:
 	stz	<__cl	; sector (offset from base of track)
 	sta	<__ch
 	stx	<__dl
-	iny
-	lda	ovlarray,Y
+	txa
+	sec
+	eor	#$FF
+	adc	ovlarray + 1,Y
 	sta	<__al	; # sectors
 	tma	#6
 	sta	<__bl	; Bank #
@@ -474,13 +476,10 @@ lib3_cd_loaddata.4:
 ; prepare the sector address
 ;
 prep_rdsect:	txa
-	asl	A
-	asl	A
 	tay
 	map	ovlarray	; in DATA_BANK
 	ldx	ovlarray,Y
-	iny
-	lda	ovlarray,Y
+	lda	ovlarray + 100,Y
 	rts
 
 ;--------------------

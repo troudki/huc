@@ -189,9 +189,12 @@ MAIN_BANK	.rs	1
 
 ;
 ; place overlay array here
-; 50 entries, each containing
-; 2 bytes for start sector,
-; 2 bytes for # sectors
+; 100 entries, stored as 100
+; lo-bytes of the starting
+; sector num, followed by 100
+; hi-bytes for a 128MB range
+; all files are contiguous, so
+; the # sectors is calculated
 ;
 ovlarray:	.ds	200
 
@@ -339,12 +342,14 @@ cdrom_err_load:
 	ldy	cderr_overlay_num
 	lda	#DATA_BANK+$80
 	tam	#3
-	ldx	ovlarray,Y++
-	lda	ovlarray,Y++
-	stz	<__cl		; sector (offset from base of track)
-	sta	<__ch
-	stx	<__dl
 	lda	ovlarray,Y
+	ldx	ovlarray + 100,Y
+	stz	<__cl		; sector (offset from base of track)
+	stx	<__ch
+	sta	<__dl
+	sec
+	eor	#$FF
+	adc	ovlarray + 1,Y
 	sta	<__al		; # sectors
 	lda	#$80
 	sta	<__bl		; bank #
