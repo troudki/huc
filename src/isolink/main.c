@@ -27,18 +27,32 @@
 /*************/
 
 #define OVERLAY_SUFFIX  "ovl"
+#define MAX_FILES 256
 
 
 /*************/
 /* GLOBALS   */
 /*************/
 
-int sector_array[200][2];
-int array_count;
+int sector_array[MAX_FILES];
+int file_count;
 int cderr_flag = 0;
 int cderr_ovl = 0;
 static char incpath[10][256];
 static int debug;
+
+int ipl_flag = 0;
+int ipl_load = 0x4000;
+int ipl_exec = BOOT_ENTRY_POINT;
+int ipl_mpr2 = 0x00;
+int ipl_mpr3 = 0x01;
+int ipl_mpr4 = 0x02;
+int ipl_mpr5 = 0x03;
+int ipl_mpr6 = 0x00;
+int ipl_mode = 0x60;
+char * ipl_file = NULL;
+char * ipl_name = "isoLink";
+char * ipl_nend;
 
 
 /*************/
@@ -257,10 +271,7 @@ file_write(FILE *outfile, FILE *infile, char *filename, int curr_filenum)
 
    /* get proper number of sectors if not an exact size multiple */
 
-   sectors = size / 2048;
-   if ((sectors * 2048) != size) {
-      sectors++;
-   }
+   sectors = (size + 2047) / 2048;
 
    for (i = 0; i < sectors; i++) {
       bytes_read = fread((void *)buffer, 1, 2048, infile);
@@ -273,10 +284,7 @@ file_write(FILE *outfile, FILE *infile, char *filename, int curr_filenum)
             exit(1);
          } else {
             /* fill buffer with zeroes */
-
-            for (j = bytes_read; j < 2048; j++) {
-               buffer[j] = 0;
-            }
+            memset(buffer + bytes_read, 0, 2048 - bytes_read);
          }
       }
 
@@ -289,20 +297,18 @@ file_write(FILE *outfile, FILE *infile, char *filename, int curr_filenum)
 
             if ((cderr_flag == 1) && (curr_filenum == 1)) {
                buffer[(CDERR_OVERRIDE & 0x07FF)] = 1;
-               buffer[(CDERR_OVERLAY_NUM & 0x07FF)] = cderr_ovl << 2;
+               buffer[(CDERR_OVERLAY_NUM & 0x07FF)] = cderr_ovl;
             }
          } else if (i == DATA_SECTOR)   {
-            for (j = 0; j < array_count; j++) {
+            for (j = 0; j < 100; j++) {
 
                /* sector_array[0] is ipl.bin which is a segment    */
                /* but not an addressable one - still, it is stored */
                /* Encode this array into DATA_SEGMENT of all code  */
                /* overlays on disk, in Hu6280 addressable order    */
 
-               buffer[j * 4]   = (sector_array[j][0]) & 255;
-               buffer[j * 4 + 1] = (sector_array[j][0]) >> 8;
-               buffer[j * 4 + 2] = (sector_array[j][1]) & 255;
-               buffer[j * 4 + 3] = (sector_array[j][1]) >> 8;
+               buffer[j +   0] = (sector_array[j]) & 255;
+               buffer[j + 100] = (sector_array[j]) >> 8;
             }
          }
       }
@@ -320,49 +326,87 @@ file_write(FILE *outfile, FILE *infile, char *filename, int curr_filenum)
 void
 ipl_write(FILE *outfile)
 {
-   unsigned char ipl_buffer[4096];
+   int i;
+   size_t sectors = sector_array[1] - sector_array[0];
+   unsigned char * ipl_buffer = calloc(sectors, 2048);
+   int beyond128mb = 255;
 
-   /* initialize the ipl */
-   prepare_ipl(ipl_buffer);
+   if (ipl_file) {
+      /* read the ipl (and presumably boot code) from a file */
+      FILE *infile = file_open(ipl_file, "rb");
+      if (infile) {
+         fread((void *)ipl_buffer, 1, 2048 * sectors, infile);
+         fclose(infile);
+      }
+   } else {
+      /* initialize the ipl */
+      prepare_ipl(ipl_buffer);
 
-   /* prg sector base */
-   ipl_buffer[0x802] = 2;
+      /* prg sector base */
+      ipl_buffer[0x802] = 2;
 
-   /* nb_sectors */
-   ipl_buffer[0x803] = 16;      /* Get boot segments first; up to and including */
+      /* nb_sectors */
+      if (ipl_flag) {
+         /* ASM boot segment */
+         ipl_buffer[0x803] = sector_array[2] - sector_array[1];
+      } else {
+         ipl_buffer[0x803] = 16;/* HuC boot segments; up to and including */
                                 /* overlay array.  The boot segments will load */
                                 /* the remaining segments and relocate code if */
                                 /* necessary           */
+      }
 
-   /* loading address */
-   ipl_buffer[0x804] = 0x00;
-   ipl_buffer[0x805] = 0x40;
+      /* loading address */
+      ipl_buffer[0x804] = (ipl_load & 255);
+      ipl_buffer[0x805] = (ipl_load >> 8) & 255;
 
-   /* starting address */
-   ipl_buffer[0x806] = (BOOT_ENTRY_POINT & 0xff);       /* boot entry point */
-   ipl_buffer[0x807] = (BOOT_ENTRY_POINT >> 8) & 0xff;
+      /* starting address */
+      ipl_buffer[0x806] = (ipl_exec & 255);       /* boot entry point */
+      ipl_buffer[0x807] = (ipl_exec >> 8) & 255;
 
-   /* mpr registers */
-   ipl_buffer[0x808] = 0x00;
-   ipl_buffer[0x809] = 0x01;
-   ipl_buffer[0x80A] = 0x02;
-   ipl_buffer[0x80B] = 0x03;
-   ipl_buffer[0x80C] = 0x00;    /* boot loader also @ $C000 */
+      /* mpr registers */
+      ipl_buffer[0x808] = ipl_mpr2;
+      ipl_buffer[0x809] = ipl_mpr3;
+      ipl_buffer[0x80A] = ipl_mpr4;
+      ipl_buffer[0x80B] = ipl_mpr5;
+      ipl_buffer[0x80C] = ipl_mpr6;    /* boot loader also @ $C000 */
 
-   /*load mode */
-   ipl_buffer[0x80D] = 0x60;
+      /* load mode */
+      ipl_buffer[0x80D] = ipl_mode;
 
-   fwrite(ipl_buffer, 1, 4096, outfile);
+      /* program name */
+      memcpy(ipl_buffer + 0x86A, ipl_name, ipl_nend - ipl_name);
+   }
+
+   /* store directory information in the last 512 bytes of the 1st sector */
+   for (i = 0; i < 256; i++) {
+
+      /* sector_array[0] is ipl.bin which is a segment    */
+      /* but not an addressable one - still, it is stored */
+
+      ipl_buffer[i + 0x600] = (sector_array[i]) & 255;
+      ipl_buffer[i + 0x700] = (sector_array[i]) >> 8;
+
+      if ((beyond128mb == 255) && (sector_array[i] >= 65536))
+         beyond128mb = i;
+   }
+
+   /* store which is the first file beyond the 128Mbyte ISO boundary */
+   ipl_buffer[0x5FF] = beyond128mb;
+
+   /* write out the ipl data */
+   fwrite(ipl_buffer, 1, 2048 * sectors, outfile);
+
+   if (ipl_buffer) free(ipl_buffer);
 }
 
 
 void
 zero_write(FILE *outfile, int sectors)
 {
-   char zero_buf[2048];
+   static char zero_buf[2048];
    int i;
 
-   memset(zero_buf, 0, 2048);
    for (i = 0; i < sectors; i++) {
       fwrite(zero_buf, 1, 2048, outfile);
    }
@@ -373,9 +417,21 @@ void
 usage(void)
 {
    printf(ISOLINK_VERSION "\n");
-   printf("\nUsage: isolink <outfile> <infile_1> <infile_2> -cderr <infile_n>. . .\n");
-   printf("\n\n");
-   printf("-cderr :  Indicates that the following overlay is to be used \n");
+   printf("\nUsage: isolink <outfile> -ipl,<params> <infile_1> <infile_2> -cderr <infile_n> \n");
+   printf("\n");
+   printf("-ipl,  :  Optional, and NOT for HuC programs! \n");
+   printf("          The comma is followed by either ... \n");
+   printf("            <ipl file> \n");
+   printf("          ... or ...\n");
+   printf("            <program name>, \n");
+   printf("            <load address>, \n");
+   printf("            <exec address>, \n");
+   printf("            <mpr2 value>, \n");
+   printf("            <mpr3 value>, \n");
+   printf("            <mpr4 value>, \n");
+   printf("            <mpr5 value>, \n");
+   printf("            <mpr6 value> \n\n");
+   printf("-cderr :  Indicates that the following HuC overlay is to be used \n");
    printf("          instead of the default text message when SCD programs\n");
    printf("          are executed on plain CD systems\n\n");
    printf("          Note: this overlay must be compiled as '-cd', not '-scd'\n\n");
@@ -388,15 +444,18 @@ main(int argc, char *argv[])
    int i, j;
    int curr_sector, sectors, zero_fill;
    long file_len;
+   char *inname;
    FILE *infile;
    FILE *outfile;
 
    debug = 0;
-   array_count = 0;
+   file_count = 0;
    curr_sector = 0;
    j = 0;
 
    init_path();
+
+   ipl_nend = ipl_name + strlen(ipl_name);
 
    /********************************************************/
    /* parse command-line                                   */
@@ -406,16 +465,83 @@ main(int argc, char *argv[])
    /* for existence, and creating an array which holds     */
    /* size and number of sectors                           */
    /********************************************************/
-   if (argc < 2) {
+   if ((argc < 2) || (argv[1][0] == '-')) {
       usage();
       exit(1);
    }
 
-   for (i = 1; i < argc; i++) {
+   for (i = 2; i < argc; i++) {
       if (argv[i][0] == '-') {
+         if ((strncmp(argv[i], "-ipl,", 5) == 0) &&
+             (i == 2) &&                /* only valid for first arg */
+             (i < (argc - 1)) &&        /* must have filename after */
+             (ipl_flag == 0)) {         /* only valid once on line */
+            char * ptr = argv[i] + 5;
+            char * nxt;
+            long val;
+
+            ipl_flag = 1;
+
+            nxt = strchr(ptr,',');
+
+            if (nxt == NULL) {
+               ipl_file = ptr;
+            } else {
+               ipl_name = ptr;
+               ipl_nend = nxt;
+               ptr = nxt + 1;
+
+               /* Allow HuC developers to set *only* the program name */
+               if (*nxt == '\0') continue;
+
+               ipl_flag = -1;
+
+               val = strtol(ptr, &nxt, 0);
+               if (nxt != ptr) ipl_load = val;
+               if (*nxt != ',') break;
+               ptr = nxt + 1;
+
+               val = strtol(ptr, &nxt, 0);
+               if (nxt != ptr) ipl_exec = val;
+               if (*nxt != ',') break;
+               ptr = nxt + 1;
+
+               val = strtol(ptr, &nxt, 0);
+               if (nxt != ptr) ipl_mpr2 = val;
+               if (*nxt != ',') break;
+               ptr = nxt + 1;
+
+               val = strtol(ptr, &nxt, 0);
+               if (nxt != ptr) ipl_mpr3 = val;
+               if (*nxt != ',') break;
+               ptr = nxt + 1;
+
+               val = strtol(ptr, &nxt, 0);
+               if (nxt != ptr) ipl_mpr4 = val;
+               if (*nxt != ',') break;
+               ptr = nxt + 1;
+
+               val = strtol(ptr, &nxt, 0);
+               if (nxt != ptr) ipl_mpr5 = val;
+               if (*nxt != ',') break;
+               ptr = nxt + 1;
+
+               val = strtol(ptr, &nxt, 0);
+               if (nxt != ptr) ipl_mpr6 = val;
+               if (*nxt != '\0') break;
+
+               ipl_flag = 1;
+
+               sector_array[j] = curr_sector;
+               curr_sector += 2;
+               j++;
+
+               continue;
+            }
+         } else
          if ((strcmp(argv[i], "-cderr") == 0) &&
-             (i != 1) &&                /* not valid for first arg */
-             (i < (argc - 1)) &&          /* must have filename after */
+             (i > 2) &&                 /* not valid for first file */
+             (i < (argc - 1)) &&        /* must have filename after */
              (cderr_flag == 0)) {       /* only valid once on line */
             cderr_flag = 1;
             cderr_ovl = j;
@@ -426,41 +552,54 @@ main(int argc, char *argv[])
          }
       }
 
-      if (i == 1) {
-         sectors = 2;
-      } else {
-         infile = file_open(argv[i], "rb");
+      inname = argv[i];
 
-         if (infile == NULL) {
-            printf("Could not open file: %s\n", argv[i]);
-            printf("Operation aborted\n\n");
-            exit(1);
-         }
-
-         fseek(infile, 0L, SEEK_END);
-         file_len = ftell(infile);
-         rewind(infile);
-         fclose(infile);
-
-         sectors = (file_len / 2048);
-         if ((sectors * 2048) != file_len) {
-            sectors++;
-         }
-
-         if (debug) {
-            printf("length = %ld\n", file_len);
-            printf("start sector  = %d\n", curr_sector);
-            printf("len (sectors) = %d\n", sectors);
+      if (i == 2) {
+         if (ipl_file != NULL) {
+            inname = ipl_file;
+         } else {
+            sector_array[j] = curr_sector;
+            curr_sector += 2;
+            j++;
          }
       }
 
-      sector_array[j][0] = curr_sector;
-      sector_array[j][1] = sectors;
+      infile = file_open(inname, "rb");
+
+      if (infile == NULL) {
+         printf("Could not open file: %s\n", inname);
+         printf("Operation aborted\n\n");
+         exit(1);
+      }
+
+      fseek(infile, 0L, SEEK_END);
+      file_len = ftell(infile);
+      rewind(infile);
+      fclose(infile);
+
+      sectors = (file_len + 2047) / 2048;
+
+      if (debug) {
+         printf("length = %ld\n", file_len);
+         printf("start sector  = %d\n", curr_sector);
+         printf("len (sectors) = %d\n", sectors);
+      }
+
+      sector_array[j] = curr_sector;
       curr_sector += sectors;
       j++;
    }
 
-   array_count = j;
+   if (ipl_flag < 0) {
+      printf("Malformed -ipl option: \"%s\"\n", argv[2]);
+      printf("Operation aborted\n\n");
+      exit(1);
+   }
+
+   file_count = j;
+
+   /* fill in the rest of the directory */
+   while (j < MAX_FILES) sector_array[j++] = curr_sector;
 
    /* OK, let's open them for real now   */
    /* and copy them from input to output */
