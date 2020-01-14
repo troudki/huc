@@ -910,14 +910,20 @@ static void dumpfinal (void)
 			outstr("_lend:\n");
 		}
 	}
+	if (rodata_offset == 0) {
+		outstr("huc_rodata:\n");
+		outstr("__huc_rodata:\n");
+		outstr("huc_rodata_end:\n");
+		outstr("__huc_rodata_end:\n");
+	}
+	outstr("huc_data:\n");
+	outstr("__huc_data:\n");
 	if (data_offset != 0) {
 		data_buffer[data_offset] = '\0';
-		outstr("huc_data:\n");
-		outstr("___huc_data:\n");
 		outstr(data_buffer);
-		outstr("huc_data_end:\n");
-		outstr("___huc_data_end:\n");
 	}
+	outstr("huc_data_end:\n");
+	outstr("__huc_data_end:\n");
 	if (globals_h_in_process != 1)
 		outstr("__heap_start:\n");
 	if (rodata_offset != 0) {
@@ -925,10 +931,10 @@ static void dumpfinal (void)
 		ol(".data");
 		ol(".bank CONST_BANK");
 		outstr("huc_rodata:\n");
-		outstr("___huc_rodata:\n");
+		outstr("__huc_rodata:\n");
 		outstr(rodata_buffer);
 		outstr("huc_rodata_end:\n");
-		outstr("___huc_rodata_end:\n");
+		outstr("__huc_rodata_end:\n");
 	}
 	fseek(output, output_globdef, SEEK_SET);
 	if (have_irq_handler || have_sirq_handler)
