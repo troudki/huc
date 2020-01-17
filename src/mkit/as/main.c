@@ -42,11 +42,11 @@
 
 /* variables */
 unsigned char ipl_buffer[4096];
-char in_fname[128];	/* file names, input */
-char out_fname[128];	/* output */
-char bin_fname[128];	/* binary */
-char lst_fname[128];	/* listing */
-char sym_fname[128];	/* symbol table */
+char in_fname[256];	/* file names, input */
+char out_fname[256];	/* output */
+char bin_fname[256];	/* binary */
+char lst_fname[256];	/* listing */
+char sym_fname[256];	/* symbol table */
 char zeroes[2048];	/* CDROM sector full of zeores */
 char *prg_name;		/* program name */
 FILE *in_fp;		/* file pointers, input */
