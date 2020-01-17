@@ -1028,8 +1028,10 @@ intptr_t assemble (char *s)
 	else
 		strcat_s(buf, sizeof(buf), "-l 0 ");
 
+	strcat_s(buf, sizeof(buf), "\"");
 	strcat_s(buf, sizeof(buf), s);
 	buf[strlen(buf) - 1] = 's';
+	strcat_s(buf, sizeof(buf), "\"");
 
 // Comment this out later...
 //	printf("invoking pceas:\n");
