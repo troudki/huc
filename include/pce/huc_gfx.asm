@@ -1923,5 +1923,5 @@ _set_map_tile_base:
 
 _set_map_pals.1:
 	stb	<__bl, mapctablebank
-	__stw	<__si, mapctable
+	stw	<__si, mapctable
 	rts
