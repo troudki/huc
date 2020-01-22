@@ -7,7 +7,7 @@
 #include "pce.h"
 
 /* locals */
-static unsigned char buffer[32768];	/* buffer for .inc and .def directives */
+static unsigned char buffer[128 * 256];	/* buffer for .inc and .def directives */
 static unsigned char header[512];	/* rom header */
 
 
@@ -730,6 +730,7 @@ pce_incspr(int *ip)
 	unsigned int i, j;
 	int x, y, w, h;
 	unsigned int sx, sy;
+	int nb_sprite = 0;
 
 	/* define label */
 	labldef(loccnt, 1);
@@ -752,10 +753,40 @@ pce_incspr(int *ip)
 			sy = y + (i << 4);
 
 			/* encode sprite */
-			pcx_pack_16x16_sprite(buffer, sx, sy);
+			pcx_pack_16x16_sprite(buffer + 128 * (nb_sprite % 256), sx, sy);
+			nb_sprite++;
 
-			/* store sprite */
-			putbuffer(buffer, 128);
+			/* max 256 sprites */
+			if (nb_sprite >= 257) {
+				error("Too many sprites in image! The maximum is 256.");
+				return;
+			}
+		}
+	}
+
+	/* store a maximum of 256 sprites (32KB) */
+	if (nb_sprite > 256) nb_sprite = 256;
+	if (nb_sprite)
+		putbuffer(buffer, 128 * nb_sprite);
+
+	/* size */
+	if (lablptr) {
+		lablptr->data_type = P_INCSPR;
+		lablptr->data_size = 128 * nb_sprite;
+	}
+	else {
+		if (lastlabl) {
+			if (lastlabl->data_type == P_INCSPR)
+				lastlabl->data_size += 128 * nb_sprite;
+		}
+	}
+
+	/* attach the number of loaded sprites to the label */
+	if (lastlabl) {
+		if (nb_sprite) {
+			lastlabl->nb = nb_sprite;
+			if (pass == LAST_PASS)
+				lastlabl->size = 128;
 		}
 	}
 
@@ -799,7 +830,7 @@ pce_inctile(int *ip)
 			tx = x + (j << 4);
 			ty = y + (i << 4);
 
-			/* get tile */
+			/* encode tile */
 			pcx_pack_16x16_tile(buffer + 128 * (nb_tile % 256), tx, ty);
 			nb_tile++;
 
@@ -816,7 +847,7 @@ pce_inctile(int *ip)
 		}
 	}
 
-	/* store a maximum of 256 tiles */
+	/* store a maximum of 256 tiles (32KB) */
 	if (nb_tile > 256) nb_tile = 256;
 	if (nb_tile)
 		putbuffer(buffer, 128 * nb_tile);
