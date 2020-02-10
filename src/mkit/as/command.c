@@ -949,6 +949,12 @@ do_include(int *ip)
 	/* define label */
 	labldef(loccnt, 1);
 
+	/* avoid problems */
+	if (expand_macro) {
+		error("Cannot use INCLUDE inside a macro!");
+		return;
+	}
+
 	/* get file name */
 	if (!getstring(ip, fname, 127))
 		return;
