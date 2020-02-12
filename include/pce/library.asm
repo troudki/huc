@@ -112,53 +112,97 @@ load_palette:
 	maplibfunc	lib2_load_palette
 	rts
 
+xfer_palette:
+	maplibfunc	lib2_xfer_palette
+	rts
+
 	.bank	LIB2_BANK
 lib2_load_palette:
+	ldy	color_queue_w
 
-	; ----
-	; map data
-	;
-	jsr	map_data
-
-	; ----
-	; multiply the sub-palette index by 16
-	; and set the VCE color index register
-	;
+	lda	<__si + 0
+	sta	color_addr_l,y
+	lda	<__si + 1
+	and	#$1F
+	ora	#$60
+	sta	color_addr_h,y
+	lda	<__bl
+	sta	color_bank,y
 	lda	<__al
-	stz	<__ah
-	asl	A
-	asl	A
-	asl	A
-	asl	A
-	rol	<__ah
+	sta	color_index,y
+	lda	<__cl
+	sta	color_count,y
+
+	tya
+	inc	a
+	and	#7
+.wait:	cmp	color_queue_r
+	beq	.wait
+	sta	color_queue_w
+	rts
+
+lib2_xfer_palette:
+	ldy	color_queue_r
+	cpy	color_queue_w
+	beq	.done
+
+	tma3
+	pha
+	tma4
+	pha
+
+	tii	.func, color_tia, 8
+
+.next:	lda	color_index,y
+	asl	a
+	asl	a
+	asl	a
+	asl	a
 	sta	color_reg_l
-	lda	<__ah
+	cla
+	rol	a
 	sta	color_reg_h
 
-	; ----
-	; load new colors
-	;
+	lda	color_bank,y
+	tam3
+	inc	a
+	tam4
+	lda	color_addr_l,y
+	sta	color_tia + 1
+	lda	color_addr_h,y
+	sta	color_tia + 2
 
-; Use TIA, but BLiT 16 words at a time (32 bytes)
-; Because interrupt must not be deferred too much
-;
-	stw	#32, ram_hdwr_tia_size
-	stw	#color_data, ram_hdwr_tia_dest
+	ldx	color_count,y
+.loop:	jsr	color_tia
+	clc
+	lda	#32
+	adc	color_tia + 1
+	sta	color_tia + 1
+	bcc	.skip
+	inc	color_tia + 2
+.skip:	dex
+	bne	.loop
 
-.loop_a:
-	stw	<__si, ram_hdwr_tia_src
-	jsr	ram_hdwr_tia
-	addw	#32, <__si
-	dec	<__cl
-	bne	.loop_a
+	iny
+	tya
+	and	#7
+	tay
 
-	; ----
-	; unmap data
-	;
-	jmp	unmap_data
+	cpy	color_queue_w
+	bne	.next
+	sty	color_queue_r
+
+	pla
+	tam4
+	pla
+	tam3
+
+.done:	rts
+
+.func:	tia	0, color_data, 32
+	rts
 
 	.bank	LIB1_BANK
-
 
 ; ----
 ; load_bat

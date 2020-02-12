@@ -113,6 +113,15 @@ joybuf6:	.ds 5
 joytmp:		.ds 5
 joytmp6:	.ds 5
 
+color_queue_r:	.ds 1	; ring buffer index for read
+color_queue_w:	.ds 1	; ring buffer index for write
+color_index:	.ds 8	; ring buffer - palette index
+color_count:	.ds 8	; ring buffer - palette count
+color_bank:	.ds 8	; ring buffer - data bank
+color_addr_l:	.ds 8	; ring buffer - data addr lo
+color_addr_h:	.ds 8	; ring buffer - data addr hi
+color_tia:	.ds 8	; self-modifying RAM tia function
+
 .if (CDROM)
 
 ovl_running	.ds   1 ; overlay # that is currently running
@@ -985,7 +994,9 @@ vsync_hndl:
 .m1:	jsr	ex_dspoff
 .endif
 
-.l1:	jsr   rcr_init		; init display list
+.l1:	jsr   xfer_palette	; transfer queued palettes
+
+	jsr   rcr_init		; init display list
 
 .l2:	st0   #7		; scrolling
 	stw   bg_x1,video_data
