@@ -380,18 +380,20 @@ cdrom_err_load:
 ;       base memory at MMR $68 if appropriate
 ;
 .if (CDROM = SUPER_CD)
-	 jsr   ex_getver	; check if SCD program running
-	 stx   cd_super		; on SCD hardware
-	 cpx   #3		; don't copy to _bank_base if
-	 bne   .nocopy		; memory doesn't exist there
+	jsr   ex_getver		; check if SCD program running
+	stx   cd_super		; on SCD hardware
+	cpx   #3		; don't copy to _bank_base if
+	bne   .nocopy		; memory doesn't exist there
 
-	 lda   #_bank_base+1	; copy bank 2 to proper location
-	 tam   #6
-	 tii   $6000,$C000,$2000
-	 tam   #3		; FONT_BANK now lives in SCD area ($69 exactly)
-	 lda   #_bank_base	; then copy bank 1
-	 tam   #6
-	 tii   $4000,$C000,$2000 ; then load rest of program
+	lda   #_bank_base+1	; copy bank 2 to proper location
+	tam   #6
+	tii   $6000,$C000,$2000
+	tam   #3		; FONT_BANK now lives in SCD area ($69 exactly)
+	lda   #_bank_base	; then copy bank 1
+	tam   #6
+	tii   $4000,$C000,$2000 ; then load rest of program
+	jmp   $C000 + (.nocopy & $1FFF)
+
 .nocopy:
 .endif	; (CDROM = SUPER_CD)
 
@@ -557,7 +559,7 @@ vsync_irq_ramhndlr:
 	pha			; 1
 	tma   #6		; 2
 	sta   irq_storea	; 3
-	lda   #BANK(vsync_hndl) ;  2
+	lda   #BANK(vsync_hndl) ; 2
 	tam   #6		; 2
 	pla			; 1
 	pha			; 1
@@ -573,7 +575,7 @@ hsync_irq_ramhndlr:
 	pha			; 1
 	tma   #6		; 2
 	sta   irq_storeb	; 3
-	lda   #BANK(hsync_hndl) ;  2
+	lda   #BANK(hsync_hndl) ; 2
 	tam   #6		; 2
 	pla			; 1
 	pha			; 1
