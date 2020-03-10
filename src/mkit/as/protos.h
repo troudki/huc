@@ -118,6 +118,7 @@ int  pcx_load(char *name);
 void decode_256(FILE *fp, int w, int h);
 void decode_16(FILE *fp, int w, int h);
 int  png_load(char *name);
+int  bmp_load(char *name);
 
 /* PROC.C */
 void do_call(int *ip);
