@@ -678,12 +678,20 @@ bmp_load(char *name)
 		pcx_pal[i][1] = 0;
 		pcx_pal[i][2] = 0;
 	}
-	pcx_nb_colors = (header.bitsPerPixel <= 4) ? 16 : 256;
-	printf("colors %d %d\n",header.colors,pcx_nb_colors);
+	pcx_nb_colors = 256;
 
 	if (header.bitsPerPixel==4)
 	{
-		printf("unhandled\n");
+		for (uint32_t y=0;y<pcx_h;y++)
+		{
+			for (uint32_t x=0;x<pcx_w;x+=2)
+			{
+				uint8_t byte;
+				fread(&byte,1,1,pFile);
+				pcx_buf[x+(((header.height-1-y))*header.width)]=byte>>4;
+				pcx_buf[1+x+(((header.height-1-y))*header.width)]=byte&0xf;
+			}
+		}
 	}
 	else 
 	{
