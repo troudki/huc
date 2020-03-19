@@ -193,7 +193,7 @@ struct t_opcode w65c02_inst[3] = {
 };
 
 /* pseudo instruction table */
-struct t_opcode base_pseudo[81] = {
+struct t_opcode base_pseudo[82] = {
 	{NULL,  "=",       do_equ,     PSEUDO, P_EQU,     0},
 
 	{NULL,  "BANK",    do_bank,    PSEUDO, P_BANK,    0},
@@ -242,6 +242,7 @@ struct t_opcode base_pseudo[81] = {
 	{NULL, ".DATA",    do_section, PSEUDO, P_DATA,    S_DATA},
 	{NULL, ".DB",      do_db,      PSEUDO, P_DB,      0},
 	{NULL, ".DW",      do_dw,      PSEUDO, P_DW,      0},
+	{NULL, ".DD",      do_dd,      PSEUDO, P_DW,      0},
 	{NULL, ".DS",      do_ds,      PSEUDO, P_DS,      0},
 	{NULL, ".ELSE",    do_else,    PSEUDO, P_ELSE,    0},
 	{NULL, ".ENDIF",   do_endif,   PSEUDO, P_ENDIF,   0},

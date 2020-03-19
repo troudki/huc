@@ -860,6 +860,7 @@ ram_hdwr_tia_rts	.ds	1
 
 .ifdef HUC
 _load_vram.3:
+_load_vram2.4:
 .endif
 load_vram:
 

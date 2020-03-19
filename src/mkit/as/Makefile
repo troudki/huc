@@ -1,6 +1,7 @@
 # MAGICKIT MAKEFILE
 #
 
+CC = GCC
 #
 # Defines
 #
