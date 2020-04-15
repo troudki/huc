@@ -122,6 +122,7 @@
 #define I_CLI        92
 #define I_MAPCBANK   93
 #define I_UNMAPCBANK 94
+#define I_MACRO      95			// Used to fastcall macro calling support
 
 /* optimized pseudo instructions */
 #define X_MASK          0xFFFF0

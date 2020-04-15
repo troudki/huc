@@ -100,6 +100,8 @@ void newfunc (const char *sname, int ret_ptr_order, int ret_type, int ret_otag, 
 			fc->flags = 0;
 			if (match("__nop"))
 				fc->flags = 0x01;
+			if (match("__macro"))
+				fc->flags = 0x04;
 		}
 		else {
 			/* No explicit return type. */
@@ -787,8 +789,13 @@ void callfunction (char *ptr)
 		if (fast) {
 			if (fast->flags & 0x01)
 				goto l1;
+			if (fast->flags & 0x04)
+				if (nb)
+					gmacro(ptr, cnt);
+				else
+					gmacro(ptr, 0);
 		}
-		if (nb)
+		else if (nb)
 			gcall(ptr, cnt);
 		else
 			gcall(ptr, 0);
