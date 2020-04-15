@@ -371,6 +371,8 @@ void new_fastcall (void)
 	if (symget(sname)) {
 		if (strcmp(sname, "nop") == 0)
 			ptr->flags |= 0x01;
+		if (strcmp(sname, "macro") == 0)
+			ptr->flags |= 0x04;
 	}
 
 	/* check arg number */
