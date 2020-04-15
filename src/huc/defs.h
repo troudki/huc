@@ -360,6 +360,8 @@ struct const_array {
 /* fastcall func struct */
 
 #define MAX_FASTCALL_ARGS 8
+#define FASTCALL_NOP      0x01  // bitmask values
+#define FASTCALL_MACRO    0x04	// bitmask values
 
 struct fastcall {
 	struct fastcall *next;

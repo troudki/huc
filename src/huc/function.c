@@ -786,21 +786,22 @@ void callfunction (char *ptr)
 	if (ptr == NULL)
 		callstk(nargs);
 	else {
-		if (fast) {
-			if (fast->flags & 0x01)
-				goto l1;
-			if (fast->flags & 0x04)
+		if (fast && ((fast->flags & FASTCALL_NOP) || (fast->flags & FASTCALL_MACRO))) {
+
+			// Only macro fastcalls get a name generated
+			if (fast->flags & FASTCALL_MACRO)
 				if (nb)
 					gmacro(ptr, cnt);
 				else
 					gmacro(ptr, 0);
 		}
+		// Else not a NOP or MACRO fastcall
 		else if (nb)
 			gcall(ptr, cnt);
 		else
 			gcall(ptr, 0);
 	}
-l1:
+
 	/* adjust stack */
 	if (nargs > INTSIZE) {
 		nargs = nargs - INTSIZE;
