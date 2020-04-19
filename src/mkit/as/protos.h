@@ -70,7 +70,9 @@ int  func_extract(int ip);
 int  func_getargs(void);
 
 /* INPUT.C */
-void  init_path(void);
+int   add_path(char*, int);
+void  cleanup_path(void);
+int   init_path(void);
 int   readline(void);
 int   open_input(char *name);
 int   close_input(void);
